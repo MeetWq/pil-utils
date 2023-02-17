@@ -40,10 +40,10 @@
 from pil_utils import BuildImage
 
 # output: BytesIO
-output = BuildImage.new("RGBA", (200, 200), "white").circle().draw_text((0, 0, 200, 200), "测试test😂").save_png()
+output = BuildImage.new("RGBA", (200, 200), "grey").circle().draw_text((0, 0, 200, 200), "测试test😂").save_png()
 ```
 
-![](https://s2.loli.net/2023/02/06/kvyUGT6IdMutReZ.png)
+![](https://s2.loli.net/2023/02/17/oOjw9sSbfDAJvYr.png)
 
 
 - `Text2Image`
