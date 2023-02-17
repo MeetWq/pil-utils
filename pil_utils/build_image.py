@@ -152,7 +152,7 @@ class BuildImage:
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, mask.width, mask.height), 255)
         mask = mask.resize(image.size, Image.ANTIALIAS)
-        bg = Image.new("RGBA", image.size)
+        bg = Image.new("RGBA", image.size, "white")
         return BuildImage(Image.composite(image, bg, mask))
 
     def circle_corner(self, r: float) -> "BuildImage":
@@ -162,7 +162,7 @@ class BuildImage:
         draw = ImageDraw.Draw(mask)
         draw.rounded_rectangle((0, 0, mask.width, mask.height), r * 5, fill=255)
         mask = mask.resize(image.size, Image.ANTIALIAS)
-        bg = Image.new("RGBA", image.size)
+        bg = Image.new("RGBA", image.size, "white")
         return BuildImage(Image.composite(image, bg, mask))
 
     def crop(self, box: BoxType) -> "BuildImage":

@@ -1,5 +1,6 @@
 import re
 from bbcode import Parser
+from functools import cache
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
 from PIL.ImageColor import colormap
@@ -77,11 +78,22 @@ class Char:
 
 class Line:
     def __init__(
-        self, chars: List[Char], align: HAlignType = "left", fontsize: int = 16
+        self,
+        chars: List[Char],
+        align: HAlignType = "left",
+        fontsize: int = 16,
+        fontname: Optional[str] = None,
     ):
         self.chars: List[Char] = chars
         self.align: HAlignType = align
         self.fontsize = fontsize
+        self.fontname = fontname
+
+    @cache
+    def _char_a(self) -> Char:
+        return Char(
+            "A", get_proper_font("A", fontname=self.fontname), fontsize=self.fontsize
+        )
 
     @property
     def width(self) -> int:
@@ -96,7 +108,7 @@ class Line:
     @property
     def height(self) -> int:
         if not self.chars:
-            return Char("A", get_proper_font("A"), fontsize=self.fontsize).height
+            return self._char_a().height
         return max([char.ascent + char.stroke_width for char in self.chars]) + max(
             [char.descent + char.stroke_width for char in self.chars]
         )
@@ -104,13 +116,13 @@ class Line:
     @property
     def ascent(self) -> int:
         if not self.chars:
-            return Char("A", get_proper_font("A"), fontsize=self.fontsize).ascent
+            return self._char_a().ascent
         return max([char.ascent for char in self.chars])
 
     @property
     def descent(self) -> int:
         if not self.chars:
-            return Char("A", get_proper_font("A"), fontsize=self.fontsize).descent
+            return self._char_a().descent
         return max([char.descent for char in self.chars])
 
     @property
@@ -176,10 +188,10 @@ class Text2Image:
         lines: List[Line] = []
         chars: List[Char] = []
 
-        text = "\n".join(text.splitlines())
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
         for char in text:
             if char == "\n":
-                lines.append(Line(chars, align))
+                lines.append(Line(chars, align, fontsize, fontname))
                 chars = []
                 continue
             if font_fallback:
@@ -188,7 +200,7 @@ class Text2Image:
                 assert font
             chars.append(Char(char, font, fontsize, fill, stroke_width, stroke_fill))
         if chars:
-            lines.append(Line(chars, align, fontsize))
+            lines.append(Line(chars, align, fontsize, fontname))
         return cls(lines, spacing)
 
     @classmethod
@@ -241,7 +253,7 @@ class Text2Image:
         def new_line():
             nonlocal lines
             nonlocal chars
-            lines.append(Line(chars, last_align, fontsize))
+            lines.append(Line(chars, last_align, fontsize, fontname))
             chars = []
 
         align_stack: List[HAlignType] = []
@@ -268,7 +280,7 @@ class Text2Image:
         parser.add_formatter("size", None)
         parser.add_formatter("b", None)
 
-        text = "\n".join(text.splitlines())
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
         tokens = parser.tokenize(text)
         for token_type, tag_name, tag_opts, token_text in tokens:
             if token_type == 1:
