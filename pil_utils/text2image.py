@@ -1,6 +1,6 @@
 import re
 from bbcode import Parser
-from functools import cache
+from functools import lru_cache
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
 from PIL.ImageColor import colormap
@@ -89,7 +89,7 @@ class Line:
         self.fontsize = fontsize
         self.fontname = fontname
 
-    @cache
+    @lru_cache(maxsize=None)
     def _char_a(self) -> Char:
         return Char(
             "A", get_proper_font("A", fontname=self.fontname), fontsize=self.fontsize
