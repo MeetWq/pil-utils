@@ -6,13 +6,12 @@ from collections import namedtuple
 from PIL.ImageFont import FreeTypeFont
 from matplotlib.ft2font import FT2Font
 from typing import List, Optional, Set
-from matplotlib.font_manager import FontManager, FontProperties
+from matplotlib.font_manager import fontManager, FontProperties
 
 from .types import *
 
-font_manager = FontManager()
 
-default_fallback_fonts: List[str] = [
+DEFAULT_FALLBACK_FONTS: List[str] = [
     "Arial",
     "Tahoma",
     "Helvetica Neue",
@@ -60,7 +59,7 @@ class Font:
         font = cls.find_pil_font(family)
         if font:
             return font
-        filepath = font_manager.findfont(
+        filepath = fontManager.findfont(
             FontProperties(family, style=style, weight=weight),  # type: ignore
             fallback_to_default=fallback_to_default,
         )
@@ -130,7 +129,7 @@ def get_proper_font(
         * ``fontname``: 可选，指定首选字体
         * ``fallback_fonts``: 可选，指定备选字体
     """
-    fallback_fonts = fallback_fonts or default_fallback_fonts.copy()
+    fallback_fonts = fallback_fonts or DEFAULT_FALLBACK_FONTS.copy()
     if fontname:
         fallback_fonts.insert(0, fontname)
 
@@ -139,7 +138,7 @@ def get_proper_font(
             font = Font.find(family, style, weight, fallback_to_default=False)
         except:
             try:
-                default_fallback_fonts.remove(family)
+                DEFAULT_FALLBACK_FONTS.remove(family)
             except:
                 pass
             continue
