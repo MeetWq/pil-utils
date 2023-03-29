@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
+from PIL.Image import Resampling, Transpose
 from PIL.ImageColor import getrgb
 from PIL.ImageDraw import ImageDraw as Draw
 from PIL.ImageFilter import Filter
@@ -55,7 +56,7 @@ class BuildImage:
     def resize(
         self,
         size: SizeType,
-        resample: ResampleType = Image.ANTIALIAS,
+        resample: Resampling = Resampling.LANCZOS,
         keep_ratio: bool = False,
         inside: bool = False,
         direction: DirectionType = "center",
@@ -131,7 +132,7 @@ class BuildImage:
     def rotate(
         self,
         angle: float,
-        resample: ResampleType = Image.BICUBIC,
+        resample: Resampling = Resampling.BICUBIC,
         expand: bool = False,
         **kwargs,
     ) -> "BuildImage":
@@ -216,7 +217,7 @@ class BuildImage:
         """滤波"""
         return BuildImage(self.image.filter(filter))
 
-    def transpose(self, method: TransposeType) -> "BuildImage":
+    def transpose(self, method: Transpose) -> "BuildImage":
         """变换"""
         return BuildImage(self.image.transpose(method))
 

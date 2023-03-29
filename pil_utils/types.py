@@ -25,8 +25,5 @@ DirectionType = Literal[
     "southwest",
     "southeast",
 ]
-ResampleType = Literal[0, 1, 2, 3, 4, 5]
-TransposeType = Literal[0, 1, 2, 3, 4, 5, 6]
-
 FontStyle = Literal["normal", "italic", "oblique"]
 FontWeight = Literal["ultralight", "light", "normal", "bold", "ultrabold", "heavy"]
