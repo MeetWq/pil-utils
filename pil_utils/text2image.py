@@ -1,13 +1,14 @@
 import re
-from bbcode import Parser
 from functools import lru_cache
+from typing import Iterator, List, Optional
+
+from bbcode import Parser
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
 from PIL.ImageColor import colormap
-from typing import List, Optional, Iterator
 
-from .types import *
 from .fonts import Font, get_proper_font
+from .types import *
 
 
 class Char:

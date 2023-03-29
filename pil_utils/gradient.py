@@ -1,8 +1,9 @@
+from typing import TYPE_CHECKING, List
+
 import numpy as np
 from PIL import Image
-from PIL.ImageColor import getrgb
 from PIL.Image import Image as IMG
-from typing import List, TYPE_CHECKING
+from PIL.ImageColor import getrgb
 
 if TYPE_CHECKING:
     from .types import ColorType, SizeType, XYType

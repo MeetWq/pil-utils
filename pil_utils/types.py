@@ -1,5 +1,4 @@
-from typing import Tuple, Union, Literal
-
+from typing import Literal, Tuple, Union
 
 ModeType = Literal[
     "1", "CMYK", "F", "HSV", "I", "L", "LAB", "P", "RGB", "RGBA", "RGBX", "YCbCr"

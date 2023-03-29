@@ -1,17 +1,18 @@
-import cv2
-import numpy as np
 from io import BytesIO
 from pathlib import Path
-from PIL import Image, ImageDraw
-from PIL.ImageColor import getrgb
-from PIL.Image import Image as IMG
-from PIL.ImageFilter import Filter
-from PIL.ImageDraw import ImageDraw as Draw
 from typing import List, Optional, Type, Union
 
-from .types import *
+import cv2
+import numpy as np
+from PIL import Image, ImageDraw
+from PIL.Image import Image as IMG
+from PIL.ImageColor import getrgb
+from PIL.ImageDraw import ImageDraw as Draw
+from PIL.ImageFilter import Filter
+
 from .gradient import Gradient
 from .text2image import Text2Image
+from .types import *
 
 
 class BuildImage:

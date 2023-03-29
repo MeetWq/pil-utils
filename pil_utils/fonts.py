@@ -1,15 +1,15 @@
-from pathlib import Path
-from PIL import ImageFont
-from functools import lru_cache
-from fontTools.ttLib import TTFont
 from collections import namedtuple
-from PIL.ImageFont import FreeTypeFont
-from matplotlib.ft2font import FT2Font
+from functools import lru_cache
+from pathlib import Path
 from typing import List, Optional, Set
-from matplotlib.font_manager import fontManager, FontProperties
+
+from fontTools.ttLib import TTFont
+from matplotlib.font_manager import FontProperties, fontManager
+from matplotlib.ft2font import FT2Font
+from PIL import ImageFont
+from PIL.ImageFont import FreeTypeFont
 
 from .types import *
-
 
 DEFAULT_FALLBACK_FONTS: List[str] = [
     "Arial",
