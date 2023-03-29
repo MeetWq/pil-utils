@@ -228,6 +228,7 @@ class Text2Image:
           * ``[font=msyh.ttc][/font]``: 文字字体
           * ``[size=30][/size]``: 文字大小
           * ``[b][/b]``: 文字加粗
+          * ``[i][/i]``: 文字斜体
 
         :参数:
           * ``text``: 文本
@@ -263,6 +264,7 @@ class Text2Image:
         font_stack: List[str] = []
         size_stack: List[int] = []
         bold_stack: List[bool] = []
+        italic_stack: List[bool] = []
         last_align: HAlignType = align
 
         align_pattern = r"left|right|center"
@@ -280,6 +282,7 @@ class Text2Image:
         parser.add_formatter("font", None)
         parser.add_formatter("size", None)
         parser.add_formatter("b", None)
+        parser.add_formatter("i", None)
 
         text = text.replace("\r\n", "\n").replace("\r", "\n")
         tokens = parser.tokenize(text)
@@ -302,6 +305,8 @@ class Text2Image:
                         size_stack.append(int(tag_opts["size"]))
                 elif tag_name == "b":
                     bold_stack.append(True)
+                elif tag_name == "i":
+                    italic_stack.append(True)
             elif token_type == 2:
                 if tag_name == "align":
                     if align_stack:
@@ -321,6 +326,9 @@ class Text2Image:
                 elif tag_name == "b":
                     if bold_stack:
                         bold_stack.pop()
+                elif tag_name == "i":
+                    if italic_stack:
+                        italic_stack.pop()
             elif token_type == 3:
                 new_line()
             elif token_type == 4:
@@ -330,6 +338,7 @@ class Text2Image:
                 char_font = font_stack[-1] if font_stack else fontname
                 char_size = size_stack[-1] if size_stack else fontsize
                 char_bold = bold_stack[-1] if bold_stack else False
+                char_italic = italic_stack[-1] if italic_stack else False
 
                 if char_align != last_align:
                     if chars:
@@ -339,6 +348,7 @@ class Text2Image:
                     if font_fallback:
                         font = get_proper_font(
                             char,
+                            style="italic" if char_italic else "normal",
                             weight="bold" if char_bold else "normal",
                             fontname=char_font,
                             fallback_fonts=fallback_fonts,
