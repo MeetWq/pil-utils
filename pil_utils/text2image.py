@@ -20,6 +20,8 @@ class Char:
         fill: ColorType = "black",
         stroke_width: int = 0,
         stroke_fill: Optional[ColorType] = None,
+        underline: bool = False,
+        strikethrough: bool = False,
     ):
         self.char = char
         self.font = font
@@ -27,6 +29,8 @@ class Char:
         self.fill = fill
         self.stroke_width = stroke_width
         self.stroke_fill = stroke_fill
+        self.underline = underline
+        self.strikethrough = strikethrough
 
         if self.font.valid_size:
             self.stroke_width = 0
@@ -35,9 +39,9 @@ class Char:
             self.pilfont = self.font.load_font(fontsize)
 
         self.ascent, self.descent = self.pilfont.getmetrics()
-        self.width, self.height = self.pilfont.getsize(
-            self.char, stroke_width=self.stroke_width
-        )
+        self.bbox = self.pilfont.getbbox(self.char, stroke_width=self.stroke_width)
+        self.width = self.bbox[2]
+        self.height = self.bbox[3]
 
         if self.font.valid_size:
             ratio = fontsize / self.font.valid_size
@@ -47,6 +51,15 @@ class Char:
             self.height = round(self.height * ratio)
 
     def draw_on(self, img: IMG, pos: PosTypeInt):
+        line_width = max(self.fontsize // 10, 1)
+
+        if self.underline:
+            draw = ImageDraw.Draw(img)
+            y = pos[1] + self.ascent + round(line_width * 1.5)
+            draw.line(
+                (pos[0], y, pos[0] + self.width, y), fill=self.fill, width=line_width
+            )
+
         if self.font.valid_size:
             ratio = self.font.valid_size / self.fontsize
             new_img = Image.new(
@@ -74,6 +87,13 @@ class Char:
                 stroke_width=self.stroke_width,
                 stroke_fill=self.stroke_fill,
                 embedded_color=True,
+            )
+
+        if self.strikethrough:
+            draw = ImageDraw.Draw(img)
+            y = pos[1] + (self.ascent + self.descent) // 2
+            draw.line(
+                (pos[0], y, pos[0] + self.width, y), fill=self.fill, width=line_width
             )
 
 
@@ -229,6 +249,8 @@ class Text2Image:
           * ``[size=30][/size]``: 文字大小
           * ``[b][/b]``: 文字加粗
           * ``[i][/i]``: 文字斜体
+          * ``[u][/u]``: 文字下划线
+          * ``[del][/del]``: 文字删除线
 
         :参数:
           * ``text``: 文本
@@ -265,6 +287,8 @@ class Text2Image:
         size_stack: List[int] = []
         bold_stack: List[bool] = []
         italic_stack: List[bool] = []
+        underline_stack: List[bool] = []
+        strikethrough_stack: List[bool] = []
         last_align: HAlignType = align
 
         align_pattern = r"left|right|center"
@@ -283,6 +307,8 @@ class Text2Image:
         parser.add_formatter("size", None)
         parser.add_formatter("b", None)
         parser.add_formatter("i", None)
+        parser.add_formatter("u", None)
+        parser.add_formatter("del", None)
 
         text = text.replace("\r\n", "\n").replace("\r", "\n")
         tokens = parser.tokenize(text)
@@ -307,6 +333,10 @@ class Text2Image:
                     bold_stack.append(True)
                 elif tag_name == "i":
                     italic_stack.append(True)
+                elif tag_name == "u":
+                    underline_stack.append(True)
+                elif tag_name == "del":
+                    strikethrough_stack.append(True)
             elif token_type == 2:
                 if tag_name == "align":
                     if align_stack:
@@ -329,6 +359,12 @@ class Text2Image:
                 elif tag_name == "i":
                     if italic_stack:
                         italic_stack.pop()
+                elif tag_name == "u":
+                    if underline_stack:
+                        underline_stack.pop()
+                elif tag_name == "del":
+                    if strikethrough_stack:
+                        strikethrough_stack.pop()
             elif token_type == 3:
                 new_line()
             elif token_type == 4:
@@ -339,6 +375,10 @@ class Text2Image:
                 char_size = size_stack[-1] if size_stack else fontsize
                 char_bold = bold_stack[-1] if bold_stack else False
                 char_italic = italic_stack[-1] if italic_stack else False
+                char_underline = underline_stack[-1] if underline_stack else False
+                char_strikethrough = (
+                    strikethrough_stack[-1] if strikethrough_stack else False
+                )
 
                 if char_align != last_align:
                     if chars:
@@ -363,6 +403,8 @@ class Text2Image:
                             char_color,
                             int(char_size * stroke_ratio),
                             char_stroke,
+                            char_underline,
+                            char_strikethrough,
                         )
                     )
 

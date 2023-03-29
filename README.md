@@ -74,10 +74,12 @@ img = text2image("N[size=40][color=red]O[/color][/size]neBo[size=40][color=blue]
 - `[align=left|right|center][/align]`: 文字对齐方式
 - `[color=#66CCFF|red|black][/color]`: 字体颜色
 - `[stroke=#66CCFF|red|black][/stroke]`: 描边颜色
-- `[font=msyh.ttc][/font]`: 文字字体
+- `[font=Microsoft YaHei][/font]`: 文字字体
 - `[size=30][/size]`: 文字大小
 - `[b][/b]`: 文字加粗
-
+- `[i][/i]`: 文字斜体
+- `[u][/u]`: 文字下划线
+- `[del][/del]`: 文字删除线
 
 ### 特别感谢
 
