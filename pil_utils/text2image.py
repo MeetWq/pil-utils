@@ -40,8 +40,8 @@ class Char:
 
         self.ascent, self.descent = self.pilfont.getmetrics()
         self.bbox = self.pilfont.getbbox(self.char, stroke_width=self.stroke_width)
-        self.width = self.bbox[2]
-        self.height = self.bbox[3]
+        self.width = self.bbox[2] + self.stroke_width
+        self.height = self.bbox[3] + self.stroke_width
 
         if self.font.valid_size:
             ratio = fontsize / self.font.valid_size
