@@ -457,13 +457,15 @@ class BuildImage:
         """
 
         if len(xy) == 2:
-            text2img = Text2Image.from_bbcode_text(
+            text2img = Text2Image.from_text(
                 text,
                 fontsize,
+                style,
+                weight,
                 fill,
                 spacing,
                 lines_align,
-                stroke_ratio,
+                int(fontsize * stroke_ratio),
                 stroke_fill,
                 font_fallback,
                 fontname,
