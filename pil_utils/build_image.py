@@ -153,7 +153,7 @@ class BuildImage:
         mask = Image.new("L", (image.width * 5, image.height * 5), 0)
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, mask.width, mask.height), 255)
-        mask = mask.resize(image.size, Image.ANTIALIAS)
+        mask = mask.resize(image.size, Resampling.LANCZOS)
         bg = Image.new("RGBA", image.size, (255, 255, 255, 0))
         return BuildImage(Image.composite(image, bg, mask))
 
@@ -163,7 +163,7 @@ class BuildImage:
         mask = Image.new("L", (image.width * 5, image.height * 5), 0)
         draw = ImageDraw.Draw(mask)
         draw.rounded_rectangle((0, 0, mask.width, mask.height), r * 5, fill=255)
-        mask = mask.resize(image.size, Image.ANTIALIAS)
+        mask = mask.resize(image.size, Resampling.LANCZOS)
         bg = Image.new("RGBA", image.size, (255, 255, 255, 0))
         return BuildImage(Image.composite(image, bg, mask))
 

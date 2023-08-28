@@ -5,6 +5,7 @@ from typing import Iterator, List, Optional
 from bbcode import Parser
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
+from PIL.Image import Resampling
 from PIL.ImageColor import colormap
 
 from .fonts import Font, get_proper_font
@@ -74,7 +75,7 @@ class Char:
                 embedded_color=True,
             )
             new_img = new_img.resize(
-                (int(self.width), int(self.height)), resample=Image.ANTIALIAS
+                (int(self.width), int(self.height)), resample=Resampling.LANCZOS
             )
             img.paste(new_img, pos, mask=new_img)
         else:
