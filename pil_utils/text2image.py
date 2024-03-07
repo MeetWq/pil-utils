@@ -1,6 +1,6 @@
 import re
 from functools import lru_cache
-from typing import Iterator, List, Optional
+from typing import Iterator, List, Optional, Union
 
 from bbcode import Parser
 from PIL import Image, ImageDraw
@@ -9,7 +9,16 @@ from PIL.Image import Resampling
 from PIL.ImageColor import colormap
 
 from .fonts import Font, get_proper_font
-from .types import *
+from .types import (
+    BoxType,
+    ColorType,
+    FontStyle,
+    FontWeight,
+    HAlignType,
+    PosTypeFloat,
+    PosTypeInt,
+    SizeType,
+)
 
 
 class Char:

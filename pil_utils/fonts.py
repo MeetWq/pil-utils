@@ -1,7 +1,6 @@
-from collections import namedtuple
 from functools import lru_cache
 from pathlib import Path
-from typing import List, Optional, Set
+from typing import List, NamedTuple, Optional, Set
 
 from fontTools.ttLib import TTFont
 from matplotlib.font_manager import FontProperties, fontManager
@@ -9,7 +8,7 @@ from matplotlib.ft2font import FT2Font
 from PIL import ImageFont
 from PIL.ImageFont import FreeTypeFont
 
-from .types import *
+from .types import FontStyle, FontWeight
 
 DEFAULT_FALLBACK_FONTS: List[str] = [
     "Arial",
@@ -44,7 +43,7 @@ class Font:
                 self._glyph_table.add(key)
 
     @classmethod
-    @lru_cache()
+    @lru_cache
     def find(
         cls,
         family: str,
@@ -80,7 +79,11 @@ class Font:
     def find_special_font(cls, family: str) -> Optional["Font"]:
         """查找特殊字体，主要是不可缩放的emoji字体"""
 
-        SpecialFont = namedtuple("SpecialFont", ["family", "fontname", "valid_size"])
+        class SpecialFont(NamedTuple):
+            family: str
+            fontname: str
+            valid_size: int
+
         SPECIAL_FONTS = {
             "Apple Color Emoji": SpecialFont(
                 "Apple Color Emoji", "Apple Color Emoji.ttc", 160
@@ -101,12 +104,12 @@ class Font:
             except OSError:
                 pass
 
-    @lru_cache()
+    @lru_cache
     def load_font(self, fontsize: int) -> FreeTypeFont:
         """以指定大小加载字体"""
         return ImageFont.truetype(str(self.path), fontsize, encoding="utf-8")
 
-    @lru_cache()
+    @lru_cache
     def has_char(self, char: str) -> bool:
         """检查字体是否支持某个字符"""
         return ord(char) in self._glyph_table
@@ -136,10 +139,10 @@ def get_proper_font(
     for family in fallback_fonts:
         try:
             font = Font.find(family, style, weight, fallback_to_default=False)
-        except:
+        except Exception:
             try:
                 DEFAULT_FALLBACK_FONTS.remove(family)
-            except:
+            except Exception:
                 pass
             continue
         if font.has_char(char):

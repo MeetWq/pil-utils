@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pil-utils"
-version = "0.1.8"
+version = "0.1.9"
 description = "A simple PIL wrapper and text-to-image tool"
 authors = ["meetwq <meetwq@gmail.com>"]
 license = "MIT"
@@ -11,14 +11,26 @@ repository = "https://github.com/MeetWq/pil-utils"
 [tool.poetry.dependencies]
 python = "^3.8"
 fonttools = "^4.0.0"
-Pillow = ">=9.2.0,<11.0.0"
+Pillow = "^10.0.0"
 numpy = "^1.20.0"
 opencv-python-headless = "^4.0.0"
 bbcode = "^1.1.0"
 matplotlib = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^22.1.0"
+
+[tool.pyright]
+pythonVersion = "3.8"
+pythonPlatform = "All"
+typeCheckingMode = "basic"
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "UP", "C", "T", "PYI", "PT", "Q"]
+ignore = ["E402", "C901", "UP037"]
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

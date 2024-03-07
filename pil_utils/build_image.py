@@ -13,7 +13,22 @@ from PIL.ImageFilter import Filter
 
 from .gradient import Gradient
 from .text2image import Text2Image
-from .types import *
+from .types import (
+    BoxType,
+    ColorType,
+    DirectionType,
+    DistortType,
+    FontStyle,
+    FontWeight,
+    HAlignType,
+    ModeType,
+    PointsType,
+    PosTypeFloat,
+    PosTypeInt,
+    SizeType,
+    VAlignType,
+    XYType,
+)
 
 
 class BuildImage:
@@ -70,8 +85,10 @@ class BuildImage:
           * ``size``: 期望图片大小
           * ``keep_ratio``: 是否保持长宽比，默认为 `False`
           * ``inside``: `keep_ratio` 为 `True` 时，
-                        若 `inside` 为 `True`，则调整图片大小至包含于期望尺寸，不足部分设为指定颜色；
-                        若 `inside` 为 `False`，则调整图片大小至包含期望尺寸，超出部分裁剪
+                        若 `inside` 为 `True`，
+                        则调整图片大小至包含于期望尺寸，不足部分设为指定颜色；
+                        若 `inside` 为 `False`，
+                        则调整图片大小至包含期望尺寸，超出部分裁剪
           * ``direction``: 调整图片大小时图片的方位；默认为居中
           * ``bg_color``: 不足部分设置的颜色
         """
@@ -221,7 +238,7 @@ class BuildImage:
         """变换"""
         return BuildImage(self.image.transpose(method))
 
-    def perspective(self, points: PointsTYpe) -> "BuildImage":
+    def perspective(self, points: PointsType) -> "BuildImage":
         """
         透视变换
 
@@ -229,7 +246,7 @@ class BuildImage:
           * ``points``: 变换后点的位置，顺序依次为：左上->右上->右下->左下
         """
 
-        def find_coeffs(pa: PointsTYpe, pb: PointsTYpe):
+        def find_coeffs(pa: PointsType, pb: PointsType):
             matrix = []
             for p1, p2 in zip(pa, pb):
                 matrix.append(
@@ -277,7 +294,7 @@ class BuildImage:
             return self.copy()
         matrix = cv2.getRotationMatrix2D((degree / 2, degree / 2), angle + 45, 1)
         kernel = np.diag(np.ones(degree))
-        kernel = cv2.warpAffine(kernel, matrix, (degree, degree)) / degree
+        kernel = cv2.warpAffine(kernel, matrix, (degree, degree)) / degree  # type: ignore
         blurred = cv2.filter2D(np.asarray(self.image), -1, kernel)
         cv2.normalize(blurred, blurred, 0, 255, cv2.NORM_MINMAX)
         return BuildImage(Image.fromarray(np.array(blurred, dtype=np.uint8)))
@@ -436,7 +453,8 @@ class BuildImage:
         在图片上指定区域画文字
 
         :参数:
-          * ``xy``: 文字位置或文字区域；传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
+          * ``xy``: 文字位置或文字区域；
+                    传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
           * ``text``: 文字，支持多行
           * ``fontsize``: 字体大小
           * ``max_fontsize``: 允许的最大字体大小
@@ -544,7 +562,8 @@ class BuildImage:
         在图片上指定区域画文字
 
         :参数:
-          * ``xy``: 文字位置或文字区域；传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
+          * ``xy``: 文字位置或文字区域；
+                    传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
           * ``text``: 文字，支持多行
           * ``fontsize``: 字体大小
           * ``max_fontsize``: 允许的最大字体大小
