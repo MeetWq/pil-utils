@@ -1,6 +1,7 @@
+import functools
 import re
-from functools import lru_cache
-from typing import Iterator, List, Optional, Union
+from collections.abc import Iterator
+from typing import Optional, Union
 
 from bbcode import Parser
 from PIL import Image, ImageDraw
@@ -50,8 +51,8 @@ class Char:
 
         self.ascent, self.descent = self.pilfont.getmetrics()
         self.bbox = self.pilfont.getbbox(self.char, stroke_width=self.stroke_width)
-        self.width = self.bbox[2] + self.stroke_width
-        self.height = self.bbox[3] + self.stroke_width
+        self.width = round(self.bbox[2] + self.stroke_width)
+        self.height = round(self.bbox[3] + self.stroke_width)
 
         if self.font.valid_size:
             ratio = fontsize / self.font.valid_size
@@ -110,17 +111,17 @@ class Char:
 class Line:
     def __init__(
         self,
-        chars: List[Char],
+        chars: list[Char],
         align: HAlignType = "left",
         fontsize: int = 16,
         fontname: Optional[str] = None,
     ):
-        self.chars: List[Char] = chars
+        self.chars: list[Char] = chars
         self.align: HAlignType = align
         self.fontsize = fontsize
         self.fontname = fontname
 
-    @lru_cache(maxsize=None)
+    @functools.cache
     def _char_a(self) -> Char:
         return Char(
             "A", get_proper_font("A", fontname=self.fontname), fontsize=self.fontsize
@@ -172,7 +173,7 @@ class Line:
 
 
 class Text2Image:
-    def __init__(self, lines: List[Line], spacing: int = 4):
+    def __init__(self, lines: list[Line], spacing: int = 4):
         self.lines = lines
         self.spacing = spacing
 
@@ -190,7 +191,7 @@ class Text2Image:
         stroke_fill: Optional[ColorType] = None,
         font_fallback: bool = True,
         fontname: str = "",
-        fallback_fonts: List[str] = [],
+        fallback_fonts: list[str] = [],
     ) -> "Text2Image":
         """
         从文本构建 `Text2Image` 对象
@@ -216,8 +217,8 @@ class Text2Image:
                 raise ValueError("`font_fallback` 为 `False` 时必须指定 `fontname`")
             font = Font.find(fontname, fallback_to_default=False)
 
-        lines: List[Line] = []
-        chars: List[Char] = []
+        lines: list[Line] = []
+        chars: list[Char] = []
 
         text = text.replace("\r\n", "\n").replace("\r", "\n")
         for char in text:
@@ -246,7 +247,7 @@ class Text2Image:
         stroke_fill: Optional[ColorType] = None,
         font_fallback: bool = True,
         fontname: str = "",
-        fallback_fonts: List[str] = [],
+        fallback_fonts: list[str] = [],
     ) -> "Text2Image":
         """
         从含有 `BBCode` 的文本构建 `Text2Image` 对象
@@ -281,8 +282,8 @@ class Text2Image:
                 raise ValueError("`font_fallback` 为 `False` 时必须指定 `fontname`")
             font = Font.find(fontname, fallback_to_default=False)
 
-        lines: List[Line] = []
-        chars: List[Char] = []
+        lines: list[Line] = []
+        chars: list[Char] = []
 
         def new_line():
             nonlocal lines
@@ -290,15 +291,15 @@ class Text2Image:
             lines.append(Line(chars, last_align, fontsize, fontname))
             chars = []
 
-        align_stack: List[HAlignType] = []
-        color_stack: List[ColorType] = []
-        stroke_stack: List[ColorType] = []
-        font_stack: List[str] = []
-        size_stack: List[int] = []
-        bold_stack: List[bool] = []
-        italic_stack: List[bool] = []
-        underline_stack: List[bool] = []
-        strikethrough_stack: List[bool] = []
+        align_stack: list[HAlignType] = []
+        color_stack: list[ColorType] = []
+        stroke_stack: list[ColorType] = []
+        font_stack: list[str] = []
+        size_stack: list[int] = []
+        bold_stack: list[bool] = []
+        italic_stack: list[bool] = []
+        underline_stack: list[bool] = []
+        strikethrough_stack: list[bool] = []
         last_align: HAlignType = align
 
         align_pattern = r"left|right|center"
@@ -442,7 +443,7 @@ class Text2Image:
         )
 
     def wrap(self, width: float) -> "Text2Image":
-        new_lines: List[Line] = []
+        new_lines: list[Line] = []
         for line in self.lines:
             new_lines.extend(line.wrap(width))
         self.lines = new_lines

@@ -1,6 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import List, NamedTuple, Optional, Set
+from typing import NamedTuple, Optional
 
 from fontTools.ttLib import TTFont
 from matplotlib.font_manager import FontProperties, fontManager
@@ -10,7 +10,7 @@ from PIL.ImageFont import FreeTypeFont
 
 from .types import FontStyle, FontWeight
 
-DEFAULT_FALLBACK_FONTS: List[str] = [
+DEFAULT_FALLBACK_FONTS: list[str] = [
     "Arial",
     "Tahoma",
     "Helvetica Neue",
@@ -37,7 +37,7 @@ class Font:
         """字体文件路径"""
         self.valid_size = valid_size
         """某些字体不支持缩放，只能以特定的大小加载"""
-        self._glyph_table: Set[int] = set()
+        self._glyph_table: set[int] = set()
         for table in TTFont(self.path, fontNumber=0)["cmap"].tables:  # type: ignore
             for key in table.cmap.keys():
                 self._glyph_table.add(key)
@@ -120,7 +120,7 @@ def get_proper_font(
     style: FontStyle = "normal",
     weight: FontWeight = "normal",
     fontname: Optional[str] = None,
-    fallback_fonts: List[str] = [],
+    fallback_fonts: list[str] = [],
 ) -> Font:
     """
     获取合适的字体，将依次检查备选字体是否支持想要的字符

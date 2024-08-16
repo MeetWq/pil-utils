@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 import numpy as np
 from PIL import Image
@@ -25,7 +25,7 @@ class ColorStop:
 
 
 class Gradient:
-    def __init__(self, color_stops: List[ColorStop] = []):
+    def __init__(self, color_stops: list[ColorStop] = []):
         self.color_stops = color_stops
         self.color_stops.sort()
 
@@ -38,7 +38,7 @@ class Gradient:
 
 
 class LinearGradient(Gradient):
-    def __init__(self, xy: "XYType", color_stops: List[ColorStop] = []):
+    def __init__(self, xy: "XYType", color_stops: list[ColorStop] = []):
         self.xy = xy
         self.x0 = xy[0]
         """渐变开始点的 x 坐标"""

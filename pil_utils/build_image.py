@@ -1,12 +1,12 @@
 from io import BytesIO
 from pathlib import Path
-from typing import List, Optional, Type, Union
+from typing import Optional, Union
 
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
 from PIL.Image import Image as IMG
-from PIL.Image import Resampling, Transpose
+from PIL.Image import Resampling, Transform, Transpose
 from PIL.ImageColor import getrgb
 from PIL.ImageDraw import ImageDraw as Draw
 from PIL.ImageFilter import Filter
@@ -230,7 +230,7 @@ class BuildImage:
             img = img.image
         return BuildImage(self.image.alpha_composite(img, dest=dest, source=source))  # type: ignore
 
-    def filter(self, filter: Union[Filter, Type[Filter]]) -> "BuildImage":
+    def filter(self, filter: Union[Filter, type[Filter]]) -> "BuildImage":
         """滤波"""
         return BuildImage(self.image.filter(filter))
 
@@ -266,10 +266,10 @@ class BuildImage:
         new_w = int(max(points_w) - min(points_w))
         new_h = int(max(points_h) - min(points_h))
         p = ((0, 0), (img_w, 0), (img_w, img_h), (0, img_h))
-        coeffs = find_coeffs(points, p)
+        coeffs = list(find_coeffs(points, p))
         return BuildImage(
             self.image.transform(
-                (new_w, new_h), Image.PERSPECTIVE, coeffs, Image.BICUBIC
+                (new_w, new_h), Transform.PERSPECTIVE, coeffs, Resampling.BICUBIC
             )
         )
 
@@ -364,7 +364,7 @@ class BuildImage:
         self,
         xy: XYType,
         fill: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画直线"""
         self.draw.line(xy, fill=fill, width=width)
@@ -375,7 +375,7 @@ class BuildImage:
         xy: XYType,
         fill: Optional[ColorType] = None,
         outline: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画矩形"""
         self.draw.rectangle(xy, fill, outline, width)
@@ -387,7 +387,7 @@ class BuildImage:
         radius: int = 0,
         fill: Optional[ColorType] = None,
         outline: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画圆角矩形"""
         self.draw.rounded_rectangle(xy, radius, fill, outline, width)
@@ -395,10 +395,10 @@ class BuildImage:
 
     def draw_polygon(
         self,
-        xy: List[PosTypeFloat],
+        xy: list[PosTypeFloat],
         fill: Optional[ColorType] = None,
         outline: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画多边形"""
         self.draw.polygon(xy, fill, outline, width)
@@ -410,7 +410,7 @@ class BuildImage:
         start: float,
         end: float,
         fill: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画圆弧"""
         self.draw.arc(xy, start, end, fill, width)
@@ -421,7 +421,7 @@ class BuildImage:
         xy: XYType,
         fill: Optional[ColorType] = None,
         outline: Optional[ColorType] = None,
-        width: float = 1,
+        width: int = 1,
     ) -> "BuildImage":
         """在图片上画圆"""
         self.draw.ellipse(xy, fill, outline, width)
@@ -447,7 +447,7 @@ class BuildImage:
         stroke_fill: Optional[ColorType] = None,
         font_fallback: bool = True,
         fontname: str = "",
-        fallback_fonts: List[str] = [],
+        fallback_fonts: list[str] = [],
     ) -> "BuildImage":
         """
         在图片上指定区域画文字
@@ -556,7 +556,7 @@ class BuildImage:
         stroke_fill: Optional[ColorType] = None,
         font_fallback: bool = True,
         fontname: str = "",
-        fallback_fonts: List[str] = [],
+        fallback_fonts: list[str] = [],
     ) -> "BuildImage":
         """
         在图片上指定区域画文字

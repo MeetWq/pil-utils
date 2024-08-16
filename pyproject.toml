@@ -9,10 +9,10 @@ homepage = "https://github.com/MeetWq/pil-utils"
 repository = "https://github.com/MeetWq/pil-utils"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 fonttools = "^4.0.0"
 Pillow = "^10.0.0"
-numpy = "^1.20.0"
+numpy = ">=1.21.0"
 opencv-python-headless = "^4.0.0"
 bbcode = "^1.1.0"
 matplotlib = "^3.0.0"
@@ -20,13 +20,13 @@ matplotlib = "^3.0.0"
 [tool.poetry.group.dev.dependencies]
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 pythonPlatform = "All"
 typeCheckingMode = "basic"
 
 [tool.ruff]
 line-length = 88
-target-version = "py38"
+target-version = "py39"
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "UP", "C", "T", "PYI", "PT", "Q"]
