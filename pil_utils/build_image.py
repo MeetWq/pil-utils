@@ -335,7 +335,7 @@ class BuildImage:
         rgb_sum = sum(color)
         for i in range(h):
             for j in range(w):
-                value = img_gray[i, j]
+                value = int(img_gray[i, j])
                 new_color = (
                     [
                         int(value * r / rgb_sum),
