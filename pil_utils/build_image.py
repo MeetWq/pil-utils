@@ -12,6 +12,8 @@ from PIL.ImageColor import getrgb
 from PIL.ImageDraw import ImageDraw as Draw
 from PIL.ImageFilter import Filter
 
+import skia
+
 from .gradient import Gradient
 from .text2image import DEFAULT_FALLBACK_FONTS, Text2Image
 from .types import (
@@ -167,22 +169,51 @@ class BuildImage:
     def circle(self) -> "BuildImage":
         """将图片裁剪为圆形"""
         image = self.square().image.convert("RGBA")
-        mask = Image.new("L", (image.width * 5, image.height * 5), 0)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0, mask.width, mask.height), 255)
-        mask = mask.resize(image.size, Resampling.LANCZOS)
-        bg = Image.new("RGBA", image.size, (255, 255, 255, 0))
-        return BuildImage(Image.composite(image, bg, mask))
+        skia_image = skia.Image.frombytes(
+            image.convert("RGBA").tobytes(),
+            image.size,  # type: ignore
+            skia.kRGBA_8888_ColorType,
+        )
+        surface = skia.Surfaces.MakeRasterN32Premul(image.width, image.height)
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color4f.kTransparent)
+        path = skia.Path()
+        radius = image.width / 2
+        path.addCircle(radius, radius, radius)
+        canvas.clipPath(path, doAntiAlias=True)
+        canvas.drawImage(skia_image, 0, 0)
+        surface.flushAndSubmit()
+        skia_image = surface.makeImageSnapshot()
+        pil_image = Image.fromarray(
+            skia_image.convert(
+                colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+            )
+        ).convert("RGBA")
+        return BuildImage(pil_image)
 
     def circle_corner(self, r: float) -> "BuildImage":
         """将图片裁剪为圆角矩形"""
         image = self.image.convert("RGBA")
-        mask = Image.new("L", (image.width * 5, image.height * 5), 0)
-        draw = ImageDraw.Draw(mask)
-        draw.rounded_rectangle((0, 0, mask.width, mask.height), r * 5, fill=255)
-        mask = mask.resize(image.size, Resampling.LANCZOS)
-        bg = Image.new("RGBA", image.size, (255, 255, 255, 0))
-        return BuildImage(Image.composite(image, bg, mask))
+        skia_image = skia.Image.frombytes(
+            image.convert("RGBA").tobytes(),
+            image.size,  # type: ignore
+            skia.kRGBA_8888_ColorType,
+        )
+        surface = skia.Surfaces.MakeRasterN32Premul(image.width, image.height)
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color4f.kTransparent)
+        path = skia.Path()
+        path.addRoundRect(skia.Rect.MakeWH(image.width, image.height), r, r)
+        canvas.clipPath(path, doAntiAlias=True)
+        canvas.drawImage(skia_image, 0, 0)
+        surface.flushAndSubmit()
+        skia_image = surface.makeImageSnapshot()
+        pil_image = Image.fromarray(
+            skia_image.convert(
+                colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+            )
+        ).convert("RGBA")
+        return BuildImage(pil_image)
 
     def crop(self, box: BoxType) -> "BuildImage":
         """裁剪图片"""
