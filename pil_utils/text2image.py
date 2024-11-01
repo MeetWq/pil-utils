@@ -141,6 +141,7 @@ class Text2Image:
         style.setForegroundPaint(paint)
         style.setFontFamilies(font_families + fallback_fonts_families)
         style.setFontStyle(to_skia_font_style(font_style))
+        style.setLocale("en")
 
         builder = textlayout.ParagraphBuilder.make(
             para_style, font_collection, skia.Unicodes.ICU.Make()
@@ -164,6 +165,7 @@ class Text2Image:
             stroke_style.setForegroundPaint(stroke_paint)
             stroke_style.setFontFamilies(font_families + fallback_fonts_families)
             stroke_style.setFontStyle(to_skia_font_style(font_style))
+            stroke_style.setLocale("en")
 
             stroke_builder = textlayout.ParagraphBuilder.make(
                 para_style, font_collection, skia.Unicodes.ICU.Make()
@@ -243,6 +245,7 @@ class Text2Image:
             if text_font:
                 fonts.insert(0, text_font)
             style.setFontFamilies(fonts)
+            style.setLocale("en")
 
             if text_bold and text_italic:
                 text_style = skia.FontStyle.BoldItalic()
