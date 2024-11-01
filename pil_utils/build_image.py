@@ -12,14 +12,13 @@ from PIL.ImageDraw import ImageDraw as Draw
 from PIL.ImageFilter import Filter
 
 from .gradient import Gradient
-from .text2image import Text2Image
+from .text2image import DEFAULT_FALLBACK_FONTS, Text2Image
 from .types import (
     BoxType,
     ColorType,
     DirectionType,
     DistortType,
     FontStyle,
-    FontWeight,
     HAlignType,
     ModeType,
     PointsType,
@@ -432,22 +431,19 @@ class BuildImage:
         xy: Union[PosTypeFloat, XYType],
         text: str,
         *,
-        fontsize: int = 16,
+        font_size: int = 16,
         max_fontsize: int = 30,
         min_fontsize: int = 12,
         allow_wrap: bool = False,
-        style: FontStyle = "normal",
-        weight: FontWeight = "normal",
+        font_style: FontStyle = "normal",
         fill: ColorType = "black",
-        spacing: int = 4,
         halign: HAlignType = "center",
         valign: VAlignType = "center",
         lines_align: HAlignType = "left",
-        stroke_ratio: float = 0,
+        stroke_ratio: float = 0.05,
         stroke_fill: Optional[ColorType] = None,
-        font_fallback: bool = True,
-        fontname: str = "",
-        fallback_fonts: list[str] = [],
+        font_families: list[str] = [],
+        fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "BuildImage":
         """
         在图片上指定区域画文字
@@ -456,38 +452,32 @@ class BuildImage:
           * ``xy``: 文字位置或文字区域；
                     传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
           * ``text``: 文字，支持多行
-          * ``fontsize``: 字体大小
+          * ``font_size``: 字体大小
           * ``max_fontsize``: 允许的最大字体大小
           * ``min_fontsize``: 允许的最小字体大小
           * ``allow_wrap``: 是否允许折行
-          * ``style``: 字体样式，默认为 "normal"
-          * ``weight``: 字体粗细，默认为 "normal"
-          * ``fill``: 文字颜色
-          * ``spacing``: 多行文字间距
-          * ``halign``: 横向对齐方式，默认为居中
-          * ``valign``: 纵向对齐方式，默认为居中
-          * ``lines_align``: 多行文字对齐方式，默认为靠左
+          * ``font_style``: 字体样式，默认为 "normal"
+          * ``fill``: 文字颜色，默认为 `black`
+          * ``halign``: 横向对齐方式，默认为 `center`
+          * ``valign``: 纵向对齐方式，默认为 `center`
+          * ``lines_align``: 多行文字对齐方式，默认为 `left`
           * ``stroke_ratio``: 文字描边的比例，即 描边宽度 / 字体大小
           * ``stroke_fill``: 描边颜色
-          * ``font_fallback``: 是否使用后备字体，默认为 `True`
-          * ``fontname``: 指定首选字体
-          * ``fallback_fonts``: 指定备选字体
+          * ``font_families``: 指定首选字体
+          * ``fallback_fonts_families``: 指定备选字体
         """
 
         if len(xy) == 2:
             text2img = Text2Image.from_text(
                 text,
-                fontsize,
-                style,
-                weight,
-                fill,
-                spacing,
-                lines_align,
-                int(fontsize * stroke_ratio),
-                stroke_fill,
-                font_fallback,
-                fontname,
-                fallback_fonts,
+                font_size,
+                font_style=font_style,
+                fill=fill,
+                align=lines_align,
+                stroke_width=round(font_size * stroke_ratio),
+                stroke_fill=stroke_fill,
+                font_families=font_families,
+                fallback_fonts_families=fallback_fonts_families,
             )
             text2img.draw_on_image(self.image, xy)
             return self
@@ -496,32 +486,30 @@ class BuildImage:
         top = xy[1]
         width = xy[2] - xy[0]
         height = xy[3] - xy[1]
-        fontsize = max_fontsize
+        font_size = max_fontsize
         while True:
             text2img = Text2Image.from_text(
                 text,
-                fontsize,
-                style,
-                weight,
-                fill,
-                spacing,
-                lines_align,
-                int(fontsize * stroke_ratio),
-                stroke_fill,
-                font_fallback,
-                fontname,
-                fallback_fonts,
+                font_size,
+                font_style=font_style,
+                fill=fill,
+                align=lines_align,
+                stroke_width=round(font_size * stroke_ratio),
+                stroke_fill=stroke_fill,
+                font_families=font_families,
+                fallback_fonts_families=fallback_fonts_families,
             )
-            text_w = text2img.width
+            text_w = text2img.longest_line
+            text2img.wrap(text_w)
             text_h = text2img.height
             if text_w > width and allow_wrap:
                 text2img.wrap(width)
-                text_w = text2img.width
+                text_w = text2img.longest_line
                 text_h = text2img.height
             if text_w > width or text_h > height:
-                fontsize -= 1
-                if fontsize < min_fontsize:
-                    raise ValueError("在指定的区域和字体大小范围内画不下这段文字")
+                font_size -= 1
+                if font_size < min_fontsize:
+                    raise ValueError("在指定的区域内画不下这段文字")
             else:
                 x = left  # "left"
                 if halign == "center":
@@ -543,20 +531,18 @@ class BuildImage:
         xy: Union[PosTypeFloat, XYType],
         text: str,
         *,
-        fontsize: int = 16,
+        font_size: int = 16,
         max_fontsize: int = 30,
         min_fontsize: int = 12,
         allow_wrap: bool = False,
         fill: ColorType = "black",
-        spacing: int = 4,
         halign: HAlignType = "center",
         valign: VAlignType = "center",
         lines_align: HAlignType = "left",
-        stroke_ratio: float = 0,
+        stroke_ratio: float = 0.05,
         stroke_fill: Optional[ColorType] = None,
-        font_fallback: bool = True,
-        fontname: str = "",
-        fallback_fonts: list[str] = [],
+        font_families: list[str] = [],
+        fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "BuildImage":
         """
         在图片上指定区域画文字
@@ -565,34 +551,30 @@ class BuildImage:
           * ``xy``: 文字位置或文字区域；
                     传入 4 个参数时为文字区域，顺序依次为 左，上，右，下
           * ``text``: 文字，支持多行
-          * ``fontsize``: 字体大小
+          * ``font_size``: 字体大小
           * ``max_fontsize``: 允许的最大字体大小
           * ``min_fontsize``: 允许的最小字体大小
           * ``allow_wrap``: 是否允许折行
-          * ``fill``: 文字颜色
-          * ``spacing``: 多行文字间距
-          * ``halign``: 横向对齐方式，默认为居中
-          * ``valign``: 纵向对齐方式，默认为居中
-          * ``lines_align``: 多行文字对齐方式，默认为靠左
+          * ``fill``: 文字颜色，默认为 `black`
+          * ``halign``: 横向对齐方式，默认为 `center`
+          * ``valign``: 纵向对齐方式，默认为 `center`
+          * ``lines_align``: 多行文字对齐方式，默认为 `left`
           * ``stroke_ratio``: 文字描边的比例，即 描边宽度 / 字体大小
           * ``stroke_fill``: 描边颜色
-          * ``font_fallback``: 是否使用后备字体，默认为 `True`
-          * ``fontname``: 指定首选字体
-          * ``fallback_fonts``: 指定备选字体
+          * ``font_families``: 指定首选字体
+          * ``fallback_fonts_families``: 指定备选字体
         """
 
         if len(xy) == 2:
             text2img = Text2Image.from_bbcode_text(
                 text,
-                fontsize,
-                fill,
-                spacing,
-                lines_align,
-                stroke_ratio,
-                stroke_fill,
-                font_fallback,
-                fontname,
-                fallback_fonts,
+                font_size,
+                fill=fill,
+                align=lines_align,
+                stroke_ratio=stroke_ratio,
+                stroke_fill=stroke_fill,
+                font_families=font_families,
+                fallback_fonts_families=fallback_fonts_families,
             )
             text2img.draw_on_image(self.image, xy)
             return self
@@ -601,30 +583,29 @@ class BuildImage:
         top = xy[1]
         width = xy[2] - xy[0]
         height = xy[3] - xy[1]
-        fontsize = max_fontsize
+        font_size = max_fontsize
         while True:
             text2img = Text2Image.from_bbcode_text(
                 text,
-                fontsize,
-                fill,
-                spacing,
-                lines_align,
-                stroke_ratio,
-                stroke_fill,
-                font_fallback,
-                fontname,
-                fallback_fonts,
+                font_size,
+                fill=fill,
+                align=lines_align,
+                stroke_ratio=stroke_ratio,
+                stroke_fill=stroke_fill,
+                font_families=font_families,
+                fallback_fonts_families=fallback_fonts_families,
             )
-            text_w = text2img.width
+            text_w = text2img.longest_line
+            text2img.wrap(text_w)
             text_h = text2img.height
             if text_w > width and allow_wrap:
                 text2img.wrap(width)
-                text_w = text2img.width
+                text_w = text2img.longest_line
                 text_h = text2img.height
             if text_w > width or text_h > height:
-                fontsize -= 1
-                if fontsize < min_fontsize:
-                    raise ValueError("在指定的区域和字体大小范围内画不下这段文字")
+                font_size -= 1
+                if font_size < min_fontsize:
+                    raise ValueError("在指定的区域内画不下这段文字")
             else:
                 x = left  # "left"
                 if halign == "center":

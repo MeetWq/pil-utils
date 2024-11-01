@@ -183,7 +183,7 @@ class Text2Image:
         *,
         fill: ColorType = "black",
         align: HAlignType = "left",
-        stroke_width: float = 2.0,
+        stroke_ratio: float = 0.05,
         stroke_fill: Optional[ColorType] = None,
         font_families: list[str] = [],
         fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
@@ -208,7 +208,7 @@ class Text2Image:
           * ``font_style``: 字体样式，默认为 `normal`
           * ``fill``: 文字颜色，默认为 `black`
           * ``align``: 多行文字对齐方式，默认为 `left`
-          * ``stroke_width``: 文字描边宽度
+          * ``stroke_ratio``: 文字描边的比例，即 描边宽度 / 字体大小
           * ``stroke_fill``: 描边颜色
           * ``font_families``: 指定首选字体
           * ``fallback_fonts_families``: 指定备选字体
@@ -275,7 +275,7 @@ class Text2Image:
             paint.setColor4f(to_skia_color(text_stroke))
             paint.setStyle(skia.Paint.kStroke_Style)
             paint.setStrokeJoin(skia.Paint.kRound_Join)
-            width = stroke_width / font_size * text_size
+            width = text_size * stroke_ratio
             paint.setStrokeWidth(width)
             return paint
 
@@ -416,7 +416,7 @@ class Text2Image:
                     text_underline,
                     text_linethrough,
                 )
-                if stroke_width and text_stroke:
+                if stroke_ratio and text_stroke:
                     has_stroke = True
                     stroke_paint = new_stroke_paint(text_stroke, text_size)
                     stroke_style.setForegroundPaint(stroke_paint)
