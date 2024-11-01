@@ -1,24 +1,17 @@
-from typing import TYPE_CHECKING
-
 from PIL import Image
 from PIL.Image import Image as IMG
-from PIL.ImageColor import getrgb
 
 import skia
 
-if TYPE_CHECKING:
-    from .typing import ColorType, SizeType, XYType
+from .typing import ColorType, SizeType, XYType
+from .utils import to_skia_color
 
 
 class ColorStop:
-    def __init__(self, stop: float, _color: "ColorType"):
+    def __init__(self, stop: float, color: "ColorType"):
         self.stop = stop
         """介于 0.0 与 1.0 之间的值，表示渐变中开始与结束之间的位置"""
-        if isinstance(_color, str):
-            _color = getrgb(_color)
-        if len(_color) == 3:
-            _color = (_color[0], _color[1], _color[2], 255)
-        self.color = _color
+        self.color = color
         """在 stop 位置显示的颜色值"""
 
     def __lt__(self, other: "ColorStop"):
@@ -58,7 +51,7 @@ class LinearGradient(Gradient):
         paint = skia.Paint(
             Shader=skia.GradientShader.MakeLinear(
                 points=[skia.Point(self.x0, self.y0), skia.Point(self.x1, self.y1)],
-                colors=[int(skia.Color4f(*stop.color)) for stop in self.color_stops],
+                colors=[int(to_skia_color(stop.color)) for stop in self.color_stops],
                 positions=[stop.stop for stop in self.color_stops],
             )
         )
