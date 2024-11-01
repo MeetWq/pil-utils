@@ -7,7 +7,7 @@ from PIL.ImageColor import getrgb
 import skia
 
 if TYPE_CHECKING:
-    from .types import ColorType, SizeType, XYType
+    from .typing import ColorType, SizeType, XYType
 
 
 class ColorStop:

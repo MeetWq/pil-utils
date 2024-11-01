@@ -11,7 +11,7 @@ from PIL.ImageColor import colormap, getrgb
 import skia
 from skia import textlayout
 
-from .types import (
+from .typing import (
     BoxType,
     ColorType,
     FontStyle,

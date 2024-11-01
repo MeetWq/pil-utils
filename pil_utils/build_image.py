@@ -16,7 +16,7 @@ import skia
 
 from .gradient import Gradient
 from .text2image import DEFAULT_FALLBACK_FONTS, Text2Image
-from .types import (
+from .typing import (
     BoxType,
     ColorType,
     DirectionType,
