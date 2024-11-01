@@ -1,3 +1,4 @@
+import math
 from io import BytesIO
 from pathlib import Path
 from typing import Optional, Union
@@ -500,7 +501,7 @@ class BuildImage:
                 fallback_fonts_families=fallback_fonts_families,
             )
             text_w = text2img.longest_line
-            text2img.wrap(text_w)
+            text2img.wrap(math.ceil(text_w))
             text_h = text2img.height
             if text_w > width and allow_wrap:
                 text2img.wrap(width)
@@ -596,7 +597,7 @@ class BuildImage:
                 fallback_fonts_families=fallback_fonts_families,
             )
             text_w = text2img.longest_line
-            text2img.wrap(text_w)
+            text2img.wrap(math.ceil(text_w))
             text_h = text2img.height
             if text_w > width and allow_wrap:
                 text2img.wrap(width)
