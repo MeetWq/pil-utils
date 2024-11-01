@@ -184,6 +184,7 @@ class Text2Image:
         fill: ColorType = "black",
         align: HAlignType = "left",
         stroke_width: float = 2.0,
+        stroke_fill: Optional[ColorType] = None,
         font_families: list[str] = [],
         fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "Text2Image":
@@ -293,16 +294,19 @@ class Text2Image:
         underline_stack: list[bool] = []
         linethrough_stack: list[bool] = []
         last_align: HAlignType = align
+        has_stroke: bool = False
 
         def build():
             nonlocal builder
+            nonlocal has_stroke
             if builder:
                 paragraph = builder[0].Build()
                 paragraph.layout(math.inf)
                 stroke_paragraph = None
-                if stroke_width:
+                if has_stroke:
                     stroke_paragraph = builder[1].Build()
                     stroke_paragraph.layout(math.inf)
+                has_stroke = False
                 builder = None
                 paragraphs.append(Paragraph(paragraph, stroke_paragraph, last_align))
 
@@ -377,7 +381,7 @@ class Text2Image:
             elif token_type == 4:
                 text_align = align_stack[-1] if align_stack else align
                 text_color = color_stack[-1] if color_stack else fill
-                text_stroke = stroke_stack[-1] if stroke_stack else None
+                text_stroke = stroke_stack[-1] if stroke_stack else stroke_fill
                 text_font = font_stack[-1] if font_stack else None
                 text_size = size_stack[-1] if size_stack else font_size
                 text_bold = bold_stack[-1] if bold_stack else False
@@ -413,6 +417,7 @@ class Text2Image:
                     text_linethrough,
                 )
                 if stroke_width and text_stroke:
+                    has_stroke = True
                     stroke_paint = new_stroke_paint(text_stroke, text_size)
                     stroke_style.setForegroundPaint(stroke_paint)
                 builder[0].pushStyle(style)
