@@ -13,7 +13,6 @@ DistortType = tuple[float, float, float, float]
 SizeType = tuple[int, int]
 HAlignType = Literal["left", "right", "center"]
 VAlignType = Literal["top", "bottom", "center"]
-OrientType = Literal["horizontal", "vertical"]
 DirectionType = Literal[
     "center",
     "north",
@@ -25,5 +24,4 @@ DirectionType = Literal[
     "southwest",
     "southeast",
 ]
-FontStyle = Literal["normal", "italic", "oblique"]
-FontWeight = Literal["ultralight", "light", "normal", "bold", "ultrabold", "heavy"]
+FontStyle = Literal["normal", "italic", "bold", "bold_italic"]

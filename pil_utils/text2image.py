@@ -1,253 +1,191 @@
-import functools
+import math
 import re
-from collections.abc import Iterator
+from dataclasses import dataclass
 from typing import Optional, Union
 
 from bbcode import Parser
-from PIL import Image, ImageDraw
+from PIL import Image
 from PIL.Image import Image as IMG
-from PIL.Image import Resampling
-from PIL.ImageColor import colormap
+from PIL.ImageColor import colormap, getrgb
 
-from .fonts import Font, get_proper_font
+import skia
+from skia import textlayout
+
 from .types import (
     BoxType,
     ColorType,
     FontStyle,
-    FontWeight,
     HAlignType,
     PosTypeFloat,
-    PosTypeInt,
     SizeType,
 )
 
+DEFAULT_FALLBACK_FONTS: list[str] = [
+    "Arial",
+    "Tahoma",
+    "Helvetica Neue",
+    "Segoe UI",
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    "Source Han Sans SC",
+    "Noto Sans SC",
+    "Noto Sans CJK SC",
+    "WenQuanYi Micro Hei",
+    "Apple Color Emoji",
+    "Noto Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+]
 
-class Char:
-    def __init__(
-        self,
-        char: str,
-        font: Font,
-        fontsize: int = 16,
-        fill: ColorType = "black",
-        stroke_width: int = 0,
-        stroke_fill: Optional[ColorType] = None,
-        underline: bool = False,
-        strikethrough: bool = False,
-    ):
-        self.char = char
-        self.font = font
-        self.fontsize = fontsize
-        self.fill = fill
-        self.stroke_width = stroke_width
-        self.stroke_fill = stroke_fill
-        self.underline = underline
-        self.strikethrough = strikethrough
+font_collection = textlayout.FontCollection()
+font_collection.setDefaultFontManager(skia.FontMgr())
 
-        if self.font.valid_size:
-            self.stroke_width = 0
-            self.pilfont = self.font.load_font(self.font.valid_size)
-        else:
-            self.pilfont = self.font.load_font(fontsize)
-
-        self.ascent, self.descent = self.pilfont.getmetrics()
-        self.bbox = self.pilfont.getbbox(self.char, stroke_width=self.stroke_width)
-        self.width = round(self.bbox[2] + self.stroke_width)
-        self.height = round(self.bbox[3] + self.stroke_width)
-
-        if self.font.valid_size:
-            ratio = fontsize / self.font.valid_size
-            self.ascent = round(self.ascent * ratio)
-            self.descent = round(self.descent * ratio)
-            self.width = round(self.width * ratio)
-            self.height = round(self.height * ratio)
-
-    def draw_on(self, img: IMG, pos: PosTypeInt):
-        line_width = max(self.fontsize // 10, 1)
-
-        if self.underline:
-            draw = ImageDraw.Draw(img)
-            y = pos[1] + self.ascent + round(line_width * 1.5)
-            draw.line(
-                (pos[0], y, pos[0] + self.width, y), fill=self.fill, width=line_width
-            )
-
-        if self.font.valid_size:
-            ratio = self.font.valid_size / self.fontsize
-            new_img = Image.new(
-                "RGBA", (int(self.width * ratio), int(self.height * ratio))
-            )
-            draw = ImageDraw.Draw(new_img)
-            draw.text(
-                (0, 0),
-                self.char,
-                font=self.pilfont,
-                fill=self.fill,
-                embedded_color=True,
-            )
-            new_img = new_img.resize(
-                (int(self.width), int(self.height)), resample=Resampling.LANCZOS
-            )
-            img.paste(new_img, pos, mask=new_img)
-        else:
-            draw = ImageDraw.Draw(img)
-            draw.text(
-                pos,
-                self.char,
-                font=self.pilfont,
-                fill=self.fill,
-                stroke_width=self.stroke_width,
-                stroke_fill=self.stroke_fill,
-                embedded_color=True,
-            )
-
-        if self.strikethrough:
-            draw = ImageDraw.Draw(img)
-            y = pos[1] + (self.ascent + self.descent) // 2
-            draw.line(
-                (pos[0], y, pos[0] + self.width, y), fill=self.fill, width=line_width
-            )
+ALIGN_PATTERN = re.compile(r"left|right|center")
+css_colors = "|".join(colormap.keys())
+COLOR_PATTERN = re.compile(rf"#[a-fA-F0-9]{{6}}|{css_colors}")
+STROKE_PATTERN = COLOR_PATTERN
+FONT_PATTERN = re.compile(r".+")
+SIZE_PATTERN = re.compile(r"\d+")
 
 
-class Line:
-    def __init__(
-        self,
-        chars: list[Char],
-        align: HAlignType = "left",
-        fontsize: int = 16,
-        fontname: Optional[str] = None,
-    ):
-        self.chars: list[Char] = chars
-        self.align: HAlignType = align
-        self.fontsize = fontsize
-        self.fontname = fontname
+def to_skia_text_align(align: HAlignType) -> textlayout.TextAlign:  # type: ignore
+    if align == "center":
+        return textlayout.TextAlign.kCenter
+    elif align == "right":
+        return textlayout.TextAlign.kRight
+    return textlayout.TextAlign.kLeft
 
-    @functools.cache
-    def _char_a(self) -> Char:
-        return Char(
-            "A", get_proper_font("A", fontname=self.fontname), fontsize=self.fontsize
-        )
+
+def to_skia_color(color: ColorType) -> skia.Color4f:
+    if isinstance(color, str):
+        color = getrgb(color)
+    if len(color) == 3:
+        return skia.Color4f(color[0], color[1], color[2], 255)
+    return skia.Color4f(color[0], color[1], color[2], color[3])
+
+
+def to_skia_font_style(font_style: FontStyle) -> skia.FontStyle:
+    if font_style == "bold":
+        return skia.FontStyle.Bold()
+    elif font_style == "italic":
+        return skia.FontStyle.Italic()
+    elif font_style == "bold_italic":
+        return skia.FontStyle.BoldItalic()
+    return skia.FontStyle.Normal()
+
+
+@dataclass
+class Paragraph:
+    paragraph: textlayout.Paragraph  # type: ignore
+    stroke_paragraph: Optional[textlayout.Paragraph]  # type: ignore
+    align: HAlignType
 
     @property
-    def width(self) -> int:
-        if not self.chars:
-            return 0
-        return (
-            sum([char.width - char.stroke_width * 2 for char in self.chars])
-            + self.chars[0].stroke_width
-            + self.chars[-1].stroke_width
-        )
+    def longest_line(self) -> float:
+        return self.paragraph.LongestLine
 
     @property
-    def height(self) -> int:
-        if not self.chars:
-            return self._char_a().height
-        return max([char.ascent + char.stroke_width for char in self.chars]) + max(
-            [char.descent + char.stroke_width for char in self.chars]
-        )
+    def height(self) -> float:
+        return self.paragraph.Height
 
-    @property
-    def ascent(self) -> int:
-        if not self.chars:
-            return self._char_a().ascent
-        return max([char.ascent for char in self.chars])
-
-    @property
-    def descent(self) -> int:
-        if not self.chars:
-            return self._char_a().descent
-        return max([char.descent for char in self.chars])
-
-    @property
-    def max_stroke_width(self) -> int:
-        if not self.chars:
-            return 0
-        return max([char.stroke_width for char in self.chars])
-
-    def wrap(self, width: float) -> Iterator["Line"]:
-        last_idx = 0
-        for idx in range(len(self.chars)):
-            if Line(self.chars[last_idx : idx + 1]).width > width:
-                yield Line(self.chars[last_idx:idx], self.align)
-                last_idx = idx
-        yield Line(self.chars[last_idx:], self.align)
+    def wrap(self, width: float):
+        self.paragraph.layout(width)
+        if self.stroke_paragraph:
+            self.stroke_paragraph.layout(width)
+        return self
 
 
 class Text2Image:
-    def __init__(self, lines: list[Line], spacing: int = 4):
-        self.lines = lines
-        self.spacing = spacing
+    def __init__(self, paragraphs: list[Paragraph]):
+        self.paragraphs = paragraphs
 
     @classmethod
     def from_text(
         cls,
         text: str,
-        fontsize: int,
-        style: FontStyle = "normal",
-        weight: FontWeight = "normal",
+        font_size: float,
+        *,
+        font_style: FontStyle = "normal",
         fill: ColorType = "black",
-        spacing: int = 4,
         align: HAlignType = "left",
-        stroke_width: int = 0,
+        stroke_width: float = 0,
         stroke_fill: Optional[ColorType] = None,
-        font_fallback: bool = True,
-        fontname: str = "",
-        fallback_fonts: list[str] = [],
+        font_families: list[str] = [],
+        fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "Text2Image":
         """
         从文本构建 `Text2Image` 对象
 
         :参数:
           * ``text``: 文本
-          * ``fontsize``: 字体大小
-          * ``style``: 字体样式，默认为 "normal"
-          * ``weight``: 字体粗细，默认为 "normal"
-          * ``fill``: 文字颜色
-          * ``spacing``: 多行文字间距
-          * ``align``: 多行文字对齐方式，默认为靠左
+          * ``font_size``: 字体大小
+          * ``font_style``: 字体样式，默认为 `normal`
+          * ``fill``: 文字颜色，默认为 `black`
+          * ``align``: 多行文字对齐方式，默认为 `left`
           * ``stroke_width``: 文字描边宽度
           * ``stroke_fill``: 描边颜色
-          * ``font_fallback``: 是否使用后备字体，默认为 `True`
-          * ``fontname``: 指定首选字体
-          * ``fallback_fonts``: 指定备选字体
+          * ``font_families``: 指定首选字体
+          * ``fallback_fonts_families``: 指定备选字体
         """
 
-        font = None
-        if not font_fallback:
-            if not fontname:
-                raise ValueError("`font_fallback` 为 `False` 时必须指定 `fontname`")
-            font = Font.find(fontname, fallback_to_default=False)
+        para_style = textlayout.ParagraphStyle()
+        para_style.setTextAlign(to_skia_text_align(align))
 
-        lines: list[Line] = []
-        chars: list[Char] = []
+        paint = skia.Paint()
+        paint.setAntiAlias(True)
+        paint.setColor4f(to_skia_color(fill))
 
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
-        for char in text:
-            if char == "\n":
-                lines.append(Line(chars, align, fontsize, fontname))
-                chars = []
-                continue
-            if font_fallback:
-                font = get_proper_font(char, style, weight, fontname, fallback_fonts)
-            else:
-                assert font
-            chars.append(Char(char, font, fontsize, fill, stroke_width, stroke_fill))
-        if chars:
-            lines.append(Line(chars, align, fontsize, fontname))
-        return cls(lines, spacing)
+        style = textlayout.TextStyle()
+        style.setFontSize(font_size)
+        style.setForegroundPaint(paint)
+        style.setFontFamilies(font_families + fallback_fonts_families)
+        style.setFontStyle(to_skia_font_style(font_style))
+
+        builder = textlayout.ParagraphBuilder.make(
+            para_style, font_collection, skia.Unicodes.ICU.Make()
+        )
+        builder.pushStyle(style)
+        builder.addText(text)
+        paragraph = builder.Build()
+        paragraph.layout(math.inf)
+
+        stroke_paragraph = None
+        if stroke_width and stroke_fill:
+            stroke_paint = skia.Paint()
+            stroke_paint.setAntiAlias(True)
+            stroke_paint.setColor4f(to_skia_color(stroke_fill))
+            stroke_paint.setStyle(skia.Paint.kStroke_Style)
+            stroke_paint.setStrokeJoin(skia.Paint.kRound_Join)
+            stroke_paint.setStrokeWidth(stroke_width)
+
+            stroke_style = textlayout.TextStyle()
+            stroke_style.setFontSize(font_size)
+            stroke_style.setForegroundPaint(stroke_paint)
+            stroke_style.setFontFamilies(font_families + fallback_fonts_families)
+            stroke_style.setFontStyle(to_skia_font_style(font_style))
+
+            stroke_builder = textlayout.ParagraphBuilder.make(
+                para_style, font_collection, skia.Unicodes.ICU.Make()
+            )
+            stroke_builder.pushStyle(stroke_style)
+            stroke_builder.addText(text)
+            stroke_paragraph = stroke_builder.Build()
+            stroke_paragraph.layout(math.inf)
+
+        return cls([Paragraph(paragraph, stroke_paragraph, align)])
 
     @classmethod
     def from_bbcode_text(
         cls,
         text: str,
-        fontsize: int = 30,
+        font_size: float,
+        *,
         fill: ColorType = "black",
-        spacing: int = 6,
         align: HAlignType = "left",
-        stroke_ratio: float = 0,
-        stroke_fill: Optional[ColorType] = None,
-        font_fallback: bool = True,
-        fontname: str = "",
-        fallback_fonts: list[str] = [],
+        stroke_width: float = 2.0,
+        font_families: list[str] = [],
+        fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "Text2Image":
         """
         从含有 `BBCode` 的文本构建 `Text2Image` 对象
@@ -256,7 +194,7 @@ class Text2Image:
           * ``[align=left|right|center][/align]``: 文字对齐方式
           * ``[color=#66CCFF|red|black][/color]``: 字体颜色
           * ``[stroke=#66CCFF|red|black][/stroke]``: 描边颜色
-          * ``[font=msyh.ttc][/font]``: 文字字体
+          * ``[font=Microsoft YaHei][/font]``: 文字字体
           * ``[size=30][/size]``: 文字大小
           * ``[b][/b]``: 文字加粗
           * ``[i][/i]``: 文字斜体
@@ -265,31 +203,85 @@ class Text2Image:
 
         :参数:
           * ``text``: 文本
-          * ``fontsize``: 字体大小，默认为 30
+          * ``fontsize``: 字体大小
+          * ``font_style``: 字体样式，默认为 `normal`
           * ``fill``: 文字颜色，默认为 `black`
-          * ``spacing``: 多行文字间距
-          * ``align``: 多行文字对齐方式，默认为靠左
-          * ``stroke_ratio``: 文字描边的比例，即 描边宽度 / 字体大小
+          * ``align``: 多行文字对齐方式，默认为 `left`
+          * ``stroke_width``: 文字描边宽度
           * ``stroke_fill``: 描边颜色
-          * ``font_fallback``: 是否使用后备字体，默认为 `True`
-          * ``fontname``: 指定首选字体
-          * ``fallback_fonts``: 指定备选字体
+          * ``font_families``: 指定首选字体
+          * ``fallback_fonts_families``: 指定备选字体
         """
 
-        font = None
-        if not font_fallback:
-            if not fontname:
-                raise ValueError("`font_fallback` 为 `False` 时必须指定 `fontname`")
-            font = Font.find(fontname, fallback_to_default=False)
+        def new_builder(text_align: HAlignType) -> textlayout.ParagraphBuilder:  # type: ignore
+            para_style = textlayout.ParagraphStyle()
+            para_style.setTextAlign(to_skia_text_align(text_align))
+            builder = textlayout.ParagraphBuilder.make(
+                para_style, font_collection, skia.Unicodes.ICU.Make()
+            )
+            return builder
 
-        lines: list[Line] = []
-        chars: list[Char] = []
+        def new_style(
+            text_color: ColorType,
+            text_font: Optional[str],
+            text_size: float,
+            text_bold: bool,
+            text_italic: bool,
+            text_underline: bool,
+            text_linethrough: bool,
+        ) -> textlayout.TextStyle:  # type: ignore
+            paint = skia.Paint()
+            paint.setAntiAlias(True)
+            paint.setColor4f(to_skia_color(text_color))
 
-        def new_line():
-            nonlocal lines
-            nonlocal chars
-            lines.append(Line(chars, last_align, fontsize, fontname))
-            chars = []
+            style = textlayout.TextStyle()
+            style.setFontSize(text_size)
+            style.setForegroundPaint(paint)
+
+            fonts = font_families + fallback_fonts_families
+            if text_font:
+                fonts.insert(0, text_font)
+            style.setFontFamilies(fonts)
+
+            if text_bold and text_italic:
+                text_style = skia.FontStyle.BoldItalic()
+            elif text_bold:
+                text_style = skia.FontStyle.Bold()
+            elif text_italic:
+                text_style = skia.FontStyle.Italic()
+            else:
+                text_style = skia.FontStyle.Normal()
+            style.setFontStyle(text_style)
+
+            if text_underline and text_linethrough:
+                text_decoration = textlayout.TextDecoration.kUnderlineLineThrough
+            elif text_underline:
+                text_decoration = textlayout.TextDecoration.kUnderline
+            elif text_linethrough:
+                text_decoration = textlayout.TextDecoration.kLineThrough
+            else:
+                text_decoration = textlayout.TextDecoration.kNoDecoration
+            style.setDecoration(text_decoration)
+            style.setDecorationMode(textlayout.TextDecorationMode.kThrough)
+            style.setDecorationColor(to_skia_color(text_color))
+            style.setDecorationThicknessMultiplier(1.5)
+
+            return style
+
+        def new_stroke_paint(text_stroke: ColorType, text_size: float) -> skia.Paint:
+            paint = skia.Paint()
+            paint.setAntiAlias(True)
+            paint.setColor4f(to_skia_color(text_stroke))
+            paint.setStyle(skia.Paint.kStroke_Style)
+            paint.setStrokeJoin(skia.Paint.kRound_Join)
+            width = stroke_width / font_size * text_size
+            paint.setStrokeWidth(width)
+            return paint
+
+        paragraphs: list[Paragraph] = []
+        builder: Optional[
+            tuple[textlayout.ParagraphBuilder, textlayout.ParagraphBuilder]  # type: ignore
+        ] = None
 
         align_stack: list[HAlignType] = []
         color_stack: list[ColorType] = []
@@ -299,15 +291,20 @@ class Text2Image:
         bold_stack: list[bool] = []
         italic_stack: list[bool] = []
         underline_stack: list[bool] = []
-        strikethrough_stack: list[bool] = []
+        linethrough_stack: list[bool] = []
         last_align: HAlignType = align
 
-        align_pattern = r"left|right|center"
-        colors = "|".join(colormap.keys())
-        color_pattern = rf"#[a-fA-F0-9]{{6}}|{colors}"
-        stroke_pattern = color_pattern
-        font_pattern = r".+"
-        size_pattern = r"\d+"
+        def build():
+            nonlocal builder
+            if builder:
+                paragraph = builder[0].Build()
+                paragraph.layout(math.inf)
+                stroke_paragraph = None
+                if stroke_width:
+                    stroke_paragraph = builder[1].Build()
+                    stroke_paragraph.layout(math.inf)
+                builder = None
+                paragraphs.append(Paragraph(paragraph, stroke_paragraph, last_align))
 
         parser = Parser()
         parser.recognized_tags = {}
@@ -321,24 +318,23 @@ class Text2Image:
         parser.add_formatter("u", None)
         parser.add_formatter("del", None)
 
-        text = text.replace("\r\n", "\n").replace("\r", "\n")
         tokens = parser.tokenize(text)
         for token_type, tag_name, tag_opts, token_text in tokens:
             if token_type == 1:
                 if tag_name == "align":
-                    if re.fullmatch(align_pattern, tag_opts["align"]):
+                    if re.fullmatch(ALIGN_PATTERN, tag_opts["align"]):
                         align_stack.append(tag_opts["align"])
                 elif tag_name == "color":
-                    if re.fullmatch(color_pattern, tag_opts["color"]):
+                    if re.fullmatch(COLOR_PATTERN, tag_opts["color"]):
                         color_stack.append(tag_opts["color"])
                 elif tag_name == "stroke":
-                    if re.fullmatch(stroke_pattern, tag_opts["stroke"]):
+                    if re.fullmatch(STROKE_PATTERN, tag_opts["stroke"]):
                         stroke_stack.append(tag_opts["stroke"])
                 elif tag_name == "font":
-                    if re.fullmatch(font_pattern, tag_opts["font"]):
+                    if re.fullmatch(FONT_PATTERN, tag_opts["font"]):
                         font_stack.append(tag_opts["font"])
                 elif tag_name == "size":
-                    if re.fullmatch(size_pattern, tag_opts["size"]):
+                    if re.fullmatch(SIZE_PATTERN, tag_opts["size"]):
                         size_stack.append(int(tag_opts["size"]))
                 elif tag_name == "b":
                     bold_stack.append(True)
@@ -347,7 +343,7 @@ class Text2Image:
                 elif tag_name == "u":
                     underline_stack.append(True)
                 elif tag_name == "del":
-                    strikethrough_stack.append(True)
+                    linethrough_stack.append(True)
             elif token_type == 2:
                 if tag_name == "align":
                     if align_stack:
@@ -374,83 +370,81 @@ class Text2Image:
                     if underline_stack:
                         underline_stack.pop()
                 elif tag_name == "del":
-                    if strikethrough_stack:
-                        strikethrough_stack.pop()
+                    if linethrough_stack:
+                        linethrough_stack.pop()
             elif token_type == 3:
-                new_line()
+                build()
             elif token_type == 4:
-                char_align = align_stack[-1] if align_stack else align
-                char_color = color_stack[-1] if color_stack else fill
-                char_stroke = stroke_stack[-1] if stroke_stack else stroke_fill
-                char_font = font_stack[-1] if font_stack else fontname
-                char_size = size_stack[-1] if size_stack else fontsize
-                char_bold = bold_stack[-1] if bold_stack else False
-                char_italic = italic_stack[-1] if italic_stack else False
-                char_underline = underline_stack[-1] if underline_stack else False
-                char_strikethrough = (
-                    strikethrough_stack[-1] if strikethrough_stack else False
+                text_align = align_stack[-1] if align_stack else align
+                text_color = color_stack[-1] if color_stack else fill
+                text_stroke = stroke_stack[-1] if stroke_stack else None
+                text_font = font_stack[-1] if font_stack else None
+                text_size = size_stack[-1] if size_stack else font_size
+                text_bold = bold_stack[-1] if bold_stack else False
+                text_italic = italic_stack[-1] if italic_stack else False
+                text_underline = underline_stack[-1] if underline_stack else False
+                text_linethrough = linethrough_stack[-1] if linethrough_stack else False
+
+                if text_align != last_align:
+                    build()
+                    last_align = text_align
+
+                if not token_text:
+                    continue
+
+                if not builder:
+                    builder = (new_builder(text_align), new_builder(text_align))
+                style = new_style(
+                    text_color,
+                    text_font,
+                    text_size,
+                    text_bold,
+                    text_italic,
+                    text_underline,
+                    text_linethrough,
                 )
+                stroke_style = new_style(
+                    text_color,
+                    text_font,
+                    text_size,
+                    text_bold,
+                    text_italic,
+                    text_underline,
+                    text_linethrough,
+                )
+                if stroke_width and text_stroke:
+                    stroke_paint = new_stroke_paint(text_stroke, text_size)
+                    stroke_style.setForegroundPaint(stroke_paint)
+                builder[0].pushStyle(style)
+                builder[0].addText(token_text)
+                builder[0].pop()
+                builder[1].pushStyle(stroke_style)
+                builder[1].addText(token_text)
+                builder[1].pop()
 
-                if char_align != last_align:
-                    if chars:
-                        new_line()
-                    last_align = char_align
-                for char in token_text:
-                    if font_fallback:
-                        font = get_proper_font(
-                            char,
-                            style="italic" if char_italic else "normal",
-                            weight="bold" if char_bold else "normal",
-                            fontname=char_font,
-                            fallback_fonts=fallback_fonts,
-                        )
-                    else:
-                        assert font
-                    chars.append(
-                        Char(
-                            char,
-                            font,
-                            int(char_size),
-                            char_color,
-                            int(char_size * stroke_ratio),
-                            char_stroke,
-                            char_underline,
-                            char_strikethrough,
-                        )
-                    )
+        build()
 
-        if chars:
-            new_line()
-
-        return cls(lines, spacing)
+        return cls(paragraphs)
 
     @property
-    def width(self) -> int:
-        if not self.lines:
+    def longest_line(self) -> float:
+        if not self.paragraphs:
             return 0
-        return max([line.width for line in self.lines])
+        return max([para.longest_line for para in self.paragraphs])
 
     @property
-    def height(self) -> int:
-        if not self.lines:
+    def height(self) -> float:
+        if not self.paragraphs:
             return 0
-        return (
-            sum([line.ascent for line in self.lines])
-            + self.lines[-1].descent
-            + self.spacing * (len(self.lines) - 1)
-            + self.lines[0].max_stroke_width
-            + self.lines[-1].max_stroke_width
-        )
+        return sum([para.height for para in self.paragraphs])
 
-    def wrap(self, width: float) -> "Text2Image":
-        new_lines: list[Line] = []
-        for line in self.lines:
-            new_lines.extend(line.wrap(width))
-        self.lines = new_lines
-        return self
+    def wrap(self, width: float):
+        for para in self.paragraphs:
+            para.wrap(width)
 
     def to_image(
         self,
+        max_width: Optional[int] = None,
         bg_color: Optional[ColorType] = None,
         padding: Union[SizeType, BoxType] = (0, 0),
     ) -> IMG:
@@ -460,59 +454,75 @@ class Text2Image:
             padding_left = padding_right = padding[0]
             padding_top = padding_bottom = padding[1]
 
-        img = Image.new(
-            "RGBA",
-            (
-                self.width + padding_left + padding_right,
-                self.height + padding_top + padding_bottom,
-            ),
-            bg_color,  # type: ignore
+        if not max_width:
+            max_width = math.ceil(self.longest_line + padding_left + padding_right)
+        self.wrap(max_width)
+        image_height = math.ceil(self.height + padding_top + padding_bottom)
+
+        surface = skia.Surfaces.MakeRasterN32Premul(max_width, image_height)
+        canvas = surface.getCanvas()
+        canvas.clear(to_skia_color(bg_color) if bg_color else skia.Color4f.kTransparent)
+
+        x = padding_left
+        y = padding_top
+        for para in self.paragraphs:
+            if para.stroke_paragraph:
+                para.stroke_paragraph.paint(canvas, x, y)
+            para.paragraph.paint(canvas, x, y)
+            y += para.height
+
+        surface.flushAndSubmit()
+        skia_image = surface.makeImageSnapshot()
+        pil_image = Image.fromarray(
+            skia_image.convert(
+                colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+            )
         )
 
-        top = padding_top
-        for line in self.lines:
-            left = padding_left
-            if line.align == "center":
-                left += (self.width - line.width) / 2
-            elif line.align == "right":
-                left += self.width - line.width
+        return pil_image
 
-            x = left
-            if line.chars:
-                x += line.chars[0].stroke_width
-            for char in line.chars:
-                y = top + line.ascent - char.ascent
-                char.draw_on(img, (int(x), int(y)))
-                x += char.width - char.stroke_width * 2
-            top += line.ascent + self.spacing
+    def draw_on_image(
+        self, img: IMG, pos: PosTypeFloat, max_width: Optional[int] = None
+    ):
+        mode = img.mode
+        image = skia.Image.frombytes(
+            img.convert("RGBA").tobytes(),
+            img.size,  # type: ignore
+            skia.kRGBA_8888_ColorType,
+        )
+        surface = skia.Surfaces.MakeRasterN32Premul(image.width(), image.height())
+        canvas = surface.getCanvas()
+        canvas.drawImage(image, 0, 0)
 
-        return img
+        if not max_width:
+            max_width = math.ceil(self.longest_line)
+        self.wrap(max_width)
 
-    def draw_on_image(self, img: IMG, pos: PosTypeFloat):
-        top = pos[1]
-        for line in self.lines:
-            left = pos[0]
-            if line.align == "center":
-                left += (self.width - line.width) / 2
-            elif line.align == "right":
-                left += self.width - line.width
+        x = pos[0]
+        y = pos[1]
+        for para in self.paragraphs:
+            if para.stroke_paragraph:
+                para.stroke_paragraph.paint(canvas, x, y)
+            para.paragraph.paint(canvas, x, y)
+            y += para.height
 
-            x = left
-            if line.chars:
-                x += line.chars[0].stroke_width
-            for char in line.chars:
-                y = top + line.ascent - char.ascent
-                char.draw_on(img, (int(x), int(y)))
-                x += char.width - char.stroke_width * 2
-            top += line.ascent + self.spacing
+        surface.flushAndSubmit()
+        skia_image = surface.makeImageSnapshot()
+        pil_image = Image.fromarray(
+            skia_image.convert(
+                colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+            )
+        ).convert(mode)
+        img.im = pil_image.im.copy()  # type: ignore
 
 
 def text2image(
     text: str,
+    *,
+    font_size: float = 30,
+    max_width: Optional[int] = None,
     bg_color: ColorType = "white",
     padding: Union[SizeType, BoxType] = (10, 10),
-    max_width: Optional[int] = None,
-    font_fallback: bool = True,
     **kwargs,
 ) -> IMG:
     """
@@ -520,12 +530,10 @@ def text2image(
 
     :参数:
         * ``text``: 文本
+        * ``fontsize``: 字体大小
+        * ``max_width``: 图片中文字的最大宽度，不设置则不限宽度
         * ``bg_color``: 图片背景颜色
         * ``padding``: 图片边距
-        * ``max_width``: 图片最大宽度，不设置则不限宽度
-        * ``font_fallback``: 是否使用后备字体，默认为 `True`
     """
-    text2img = Text2Image.from_bbcode_text(text, font_fallback=font_fallback, **kwargs)
-    if max_width:
-        text2img.wrap(max_width)
-    return text2img.to_image(bg_color, padding)
+    text2img = Text2Image.from_bbcode_text(text, font_size, **kwargs)
+    return text2img.to_image(max_width, bg_color, padding)
