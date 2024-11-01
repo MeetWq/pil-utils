@@ -460,11 +460,12 @@ class Text2Image:
             padding_top = padding_bottom = padding[1]
 
         if not max_width:
-            max_width = math.ceil(self.longest_line + padding_left + padding_right)
+            max_width = math.ceil(self.longest_line)
         self.wrap(max_width)
+        image_width = max_width + padding_left + padding_right
         image_height = math.ceil(self.height + padding_top + padding_bottom)
 
-        surface = skia.Surfaces.MakeRasterN32Premul(max_width, image_height)
+        surface = skia.Surfaces.MakeRasterN32Premul(image_width, image_height)
         canvas = surface.getCanvas()
         canvas.clear(to_skia_color(bg_color) if bg_color else skia.Color4f.kTransparent)
 
