@@ -133,7 +133,7 @@ class Text2Image:
             stroke_paint.setColor4f(to_skia_color(stroke_fill))
             stroke_paint.setStyle(skia.Paint.kStroke_Style)
             stroke_paint.setStrokeJoin(skia.Paint.kRound_Join)
-            stroke_paint.setStrokeWidth(stroke_width)
+            stroke_paint.setStrokeWidth(stroke_width * 2)
 
             stroke_style = textlayout.TextStyle()
             stroke_style.setFontSize(font_size)
@@ -160,7 +160,7 @@ class Text2Image:
         *,
         fill: ColorType = "black",
         align: HAlignType = "left",
-        stroke_ratio: float = 0.05,
+        stroke_ratio: float = 0.02,
         stroke_fill: Optional[ColorType] = None,
         font_families: list[str] = [],
         fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
@@ -254,7 +254,7 @@ class Text2Image:
             paint.setStyle(skia.Paint.kStroke_Style)
             paint.setStrokeJoin(skia.Paint.kRound_Join)
             width = text_size * stroke_ratio
-            paint.setStrokeWidth(width)
+            paint.setStrokeWidth(width * 2)
             return paint
 
         paragraphs: list[Paragraph] = []
