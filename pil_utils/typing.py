@@ -1,5 +1,10 @@
 from typing import Literal, Union
 
+from typing_extensions import TypeAlias
+
+import skia
+from skia import textlayout
+
 ModeType = Literal[
     "1", "CMYK", "F", "HSV", "I", "L", "LAB", "P", "RGB", "RGBA", "RGBX", "YCbCr"
 ]
@@ -25,3 +30,8 @@ DirectionType = Literal[
     "southeast",
 ]
 FontStyle = Literal["normal", "italic", "bold", "bold_italic"]
+
+SkiaParagraph: TypeAlias = textlayout.Paragraph  # type: ignore
+SkiaTextAlign: TypeAlias = textlayout.TextAlign  # type: ignore
+SkiaFontStyle: TypeAlias = skia.FontStyle
+SkiaPaint: TypeAlias = skia.Paint

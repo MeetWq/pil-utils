@@ -3,7 +3,7 @@ from PIL.Image import Image as IMG
 
 import skia
 
-from .typing import ColorType, SizeType, XYType
+from .typing import ColorType, SizeType, SkiaPaint, XYType
 from .utils import to_skia_color
 
 
@@ -30,6 +30,9 @@ class Gradient:
     def create_image(self, size: "SizeType") -> IMG:
         raise NotImplementedError
 
+    def create_paint(self) -> SkiaPaint:
+        raise NotImplementedError
+
 
 class LinearGradient(Gradient):
     def __init__(self, xy: "XYType", color_stops: list[ColorStop] = []):
@@ -48,13 +51,7 @@ class LinearGradient(Gradient):
         surface = skia.Surfaces.MakeRasterN32Premul(size[0], size[1])
         canvas = surface.getCanvas()
         canvas.clear(skia.Color4f.kTransparent)
-        paint = skia.Paint(
-            Shader=skia.GradientShader.MakeLinear(
-                points=[skia.Point(self.x0, self.y0), skia.Point(self.x1, self.y1)],
-                colors=[int(to_skia_color(stop.color)) for stop in self.color_stops],
-                positions=[stop.stop for stop in self.color_stops],
-            )
-        )
+        paint = self.create_paint()
         canvas.drawPaint(paint)
         surface.flushAndSubmit()
         skia_image = surface.makeImageSnapshot()
@@ -64,6 +61,17 @@ class LinearGradient(Gradient):
             )
         ).convert("RGBA")
         return pil_image
+
+    def create_paint(self) -> SkiaPaint:
+        paint = skia.Paint()
+        paint.setShader(
+            skia.GradientShader.MakeLinear(
+                points=[skia.Point(self.x0, self.y0), skia.Point(self.x1, self.y1)],
+                colors=[int(to_skia_color(stop.color)) for stop in self.color_stops],
+                positions=[stop.stop for stop in self.color_stops],
+            )
+        )
+        return paint
 
 
 if __name__ == "__main__":

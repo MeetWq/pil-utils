@@ -18,6 +18,10 @@ from .typing import (
     HAlignType,
     PosTypeFloat,
     SizeType,
+    SkiaFontStyle,
+    SkiaPaint,
+    SkiaParagraph,
+    SkiaTextAlign,
 )
 from .utils import to_skia_color, to_skia_font_style, to_skia_text_align
 
@@ -52,8 +56,8 @@ SIZE_PATTERN = re.compile(r"\d+")
 
 @dataclass
 class Paragraph:
-    paragraph: textlayout.Paragraph  # type: ignore
-    stroke_paragraph: Optional[textlayout.Paragraph]  # type: ignore
+    paragraph: SkiaParagraph
+    stroke_paragraph: Optional[SkiaParagraph]
     align: HAlignType
 
     @property
@@ -81,11 +85,11 @@ class Text2Image:
         text: str,
         font_size: float,
         *,
-        font_style: FontStyle = "normal",
-        fill: ColorType = "black",
-        align: HAlignType = "left",
+        font_style: Union[FontStyle, SkiaFontStyle] = "normal",
+        fill: Union[ColorType, SkiaPaint] = "black",
+        align: Union[HAlignType, SkiaTextAlign] = "left",
         stroke_width: float = 0,
-        stroke_fill: Optional[ColorType] = None,
+        stroke_fill: Optional[Union[ColorType, SkiaPaint]] = None,
         font_families: list[str] = [],
         fallback_fonts_families: list[str] = DEFAULT_FALLBACK_FONTS,
     ) -> "Text2Image":
@@ -105,17 +109,24 @@ class Text2Image:
         """
 
         para_style = textlayout.ParagraphStyle()
-        para_style.setTextAlign(to_skia_text_align(align))
+        if not isinstance(align, textlayout.TextAlign):
+            align = to_skia_text_align(align)
+        para_style.setTextAlign(align)
 
-        paint = skia.Paint()
+        if isinstance(fill, skia.Paint):
+            paint = fill
+        else:
+            paint = skia.Paint()
+            paint.setColor4f(to_skia_color(fill))
         paint.setAntiAlias(True)
-        paint.setColor4f(to_skia_color(fill))
 
         style = textlayout.TextStyle()
         style.setFontSize(font_size)
         style.setForegroundPaint(paint)
         style.setFontFamilies(font_families + fallback_fonts_families)
-        style.setFontStyle(to_skia_font_style(font_style))
+        if not isinstance(font_style, skia.FontStyle):
+            font_style = to_skia_font_style(font_style)
+        style.setFontStyle(font_style)
         style.setLocale("en")
 
         builder = textlayout.ParagraphBuilder.make(
@@ -128,9 +139,12 @@ class Text2Image:
 
         stroke_paragraph = None
         if stroke_width and stroke_fill:
-            stroke_paint = skia.Paint()
+            if isinstance(stroke_fill, skia.Paint):
+                stroke_paint = stroke_fill
+            else:
+                stroke_paint = skia.Paint()
+                stroke_paint.setColor4f(to_skia_color(stroke_fill))
             stroke_paint.setAntiAlias(True)
-            stroke_paint.setColor4f(to_skia_color(stroke_fill))
             stroke_paint.setStyle(skia.Paint.kStroke_Style)
             stroke_paint.setStrokeJoin(skia.Paint.kRound_Join)
             stroke_paint.setStrokeWidth(stroke_width * 2)
@@ -139,7 +153,7 @@ class Text2Image:
             stroke_style.setFontSize(font_size)
             stroke_style.setForegroundPaint(stroke_paint)
             stroke_style.setFontFamilies(font_families + fallback_fonts_families)
-            stroke_style.setFontStyle(to_skia_font_style(font_style))
+            stroke_style.setFontStyle(font_style)
             stroke_style.setLocale("en")
 
             stroke_builder = textlayout.ParagraphBuilder.make(
