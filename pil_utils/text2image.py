@@ -421,9 +421,10 @@ class Text2Image:
             return 0
         return sum([para.height for para in self.paragraphs])
 
-    def wrap(self, width: float):
+    def wrap(self, width: float) -> "Text2Image":
         for para in self.paragraphs:
             para.wrap(width)
+        return self
 
     def to_image(
         self,
