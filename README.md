@@ -6,6 +6,25 @@
 - 提供 `Text2Image` 类，方便实现文字转图，支持少量 `BBCode` 标签
 
 
+### 安装
+
+使用 pip 安装：
+```
+pip install pil-utils
+```
+
+插件依赖 [skia-python](https://github.com/kyamagu/skia-python) 来绘制文字，对于 Linux 平台，需要安装 OpenGL 和 fontconfig：
+```
+apt-get install libfontconfig1 libgl1-mesa-glx libgl1-mesa-dri
+```
+或：
+```
+yum install fontconfig mesa-libGL mesa-dri-drivers
+```
+
+具体安装说明请参考 [skia-python 文档](https://kyamagu.github.io/skia-python/install.html)
+
+
 ### 使用示例
 
 
