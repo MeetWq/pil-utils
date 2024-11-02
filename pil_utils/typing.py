@@ -1,5 +1,10 @@
 from typing import Literal, Union
 
+from typing_extensions import TypeAlias
+
+import skia
+from skia import textlayout
+
 ModeType = Literal[
     "1", "CMYK", "F", "HSV", "I", "L", "LAB", "P", "RGB", "RGBA", "RGBX", "YCbCr"
 ]
@@ -13,7 +18,6 @@ DistortType = tuple[float, float, float, float]
 SizeType = tuple[int, int]
 HAlignType = Literal["left", "right", "center"]
 VAlignType = Literal["top", "bottom", "center"]
-OrientType = Literal["horizontal", "vertical"]
 DirectionType = Literal[
     "center",
     "north",
@@ -25,5 +29,9 @@ DirectionType = Literal[
     "southwest",
     "southeast",
 ]
-FontStyle = Literal["normal", "italic", "oblique"]
-FontWeight = Literal["ultralight", "light", "normal", "bold", "ultrabold", "heavy"]
+FontStyle = Literal["normal", "italic", "bold", "bold_italic"]
+
+SkiaParagraph: TypeAlias = textlayout.Paragraph  # type: ignore
+SkiaTextAlign: TypeAlias = textlayout.TextAlign  # type: ignore
+SkiaFontStyle: TypeAlias = skia.FontStyle
+SkiaPaint: TypeAlias = skia.Paint

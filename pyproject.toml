@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pil-utils"
-version = "0.1.12"
+version = "0.2.0b4"
 description = "A simple PIL wrapper and text-to-image tool"
 authors = ["meetwq <meetwq@gmail.com>"]
 license = "MIT"
@@ -10,12 +10,11 @@ repository = "https://github.com/MeetWq/pil-utils"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fonttools = "^4.0.0"
-Pillow = "^10.0.0"
+Pillow = ">=10.0.0,<12.0.0"
 numpy = ">=1.21.0"
 opencv-python-headless = "^4.0.0"
 bbcode = "^1.1.0"
-matplotlib = "^3.0.0"
+skia-python = ">=130.0b10"
 
 [tool.poetry.group.dev.dependencies]
 

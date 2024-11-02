@@ -1,22 +1,16 @@
-from typing import TYPE_CHECKING
-
-import numpy as np
 from PIL import Image
 from PIL.Image import Image as IMG
-from PIL.ImageColor import getrgb
 
-if TYPE_CHECKING:
-    from .types import ColorType, SizeType, XYType
+import skia
+
+from .typing import ColorType, SizeType, SkiaPaint, XYType
+from .utils import to_skia_color
 
 
 class ColorStop:
     def __init__(self, stop: float, color: "ColorType"):
         self.stop = stop
         """介于 0.0 与 1.0 之间的值，表示渐变中开始与结束之间的位置"""
-        if isinstance(color, str):
-            color = getrgb(color)
-        if len(color) == 3:
-            color = (color[0], color[1], color[2], 255)
         self.color = color
         """在 stop 位置显示的颜色值"""
 
@@ -36,6 +30,9 @@ class Gradient:
     def create_image(self, size: "SizeType") -> IMG:
         raise NotImplementedError
 
+    def create_paint(self) -> SkiaPaint:
+        raise NotImplementedError
+
 
 class LinearGradient(Gradient):
     def __init__(self, xy: "XYType", color_stops: list[ColorStop] = []):
@@ -51,44 +48,30 @@ class LinearGradient(Gradient):
         super().__init__(color_stops)
 
     def create_image(self, size: "SizeType") -> IMG:
-        w = size[0]
-        h = size[1]
-        x0 = self.x0
-        y0 = self.y0
-        x1 = self.x1
-        y1 = self.y1
-        x01 = x1 - x0
-        y01 = y1 - y0
-        d = x01**2 + y01**2
-        arr = np.zeros([h, w, 4], np.uint8)
-        if len(self.color_stops) == 1:
-            arr[:, :, :] = self.color_stops[0].color
-        elif self.color_stops:
-            for x in range(w):
-                for y in range(h):
-                    x0p = x - x0
-                    y0p = y - y0
-                    ratio = (x0p * x01 + y0p * y01) / d
-                    color = (0, 0, 0, 0)
-                    if ratio < 0:
-                        color = self.color_stops[0].color
-                    if ratio >= 1:
-                        color = self.color_stops[-1].color
-                    for i in range(len(self.color_stops) - 1):
-                        color_stop0 = self.color_stops[i]
-                        color_stop1 = self.color_stops[i + 1]
-                        stop0 = color_stop0.stop
-                        stop1 = color_stop1.stop
-                        color0 = color_stop0.color
-                        color1 = color_stop1.color
-                        if stop0 <= ratio < stop1:
-                            e = (ratio - stop0) / (stop1 - stop0)
-                            color = [
-                                round((1 - e) * color0[j] + e * color1[j])
-                                for j in range(4)
-                            ]
-                    arr[y, x, :] = color
-        return Image.fromarray(arr)
+        surface = skia.Surfaces.MakeRasterN32Premul(size[0], size[1])
+        canvas = surface.getCanvas()
+        canvas.clear(skia.Color4f.kTransparent)
+        paint = self.create_paint()
+        canvas.drawPaint(paint)
+        surface.flushAndSubmit()
+        skia_image = surface.makeImageSnapshot()
+        pil_image = Image.fromarray(
+            skia_image.convert(
+                colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+            )
+        ).convert("RGBA")
+        return pil_image
+
+    def create_paint(self) -> SkiaPaint:
+        paint = skia.Paint()
+        paint.setShader(
+            skia.GradientShader.MakeLinear(
+                points=[skia.Point(self.x0, self.y0), skia.Point(self.x1, self.y1)],
+                colors=[int(to_skia_color(stop.color)) for stop in self.color_stops],
+                positions=[stop.stop for stop in self.color_stops],
+            )
+        )
+        return paint
 
 
 if __name__ == "__main__":
