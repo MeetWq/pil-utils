@@ -58,7 +58,7 @@ img = Text2Image.from_text("@mnixry 🤗", 50).to_image(bg_color="white")
 from pil_utils import text2image
 
 # img: PIL.Image.Image
-img = text2image("N[size=40][color=red]O[/color][/size]neBo[size=40][color=blue]T[/color][/size]\n[align=center]太强啦[/align]")
+img = text2image("N[size=40][color=red]O[/color][/size]neBo[size=40][color=blue]T[/color][/size][align=center]太强啦[/align]")
 ```
 
 ![](https://s2.loli.net/2024/11/01/wf7CtAa1WYuJRsQ.png)

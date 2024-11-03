@@ -276,6 +276,8 @@ class Text2Image:
             tuple[textlayout.ParagraphBuilder, textlayout.ParagraphBuilder]  # type: ignore
         ] = None
 
+        default_style = new_style(fill, None, font_size, False, False, False, False)
+
         align_stack: list[HAlignType] = []
         color_stack: list[ColorType] = []
         stroke_stack: list[ColorType] = []
@@ -369,7 +371,12 @@ class Text2Image:
                     if linethrough_stack:
                         linethrough_stack.pop()
             elif token_type == 3:
-                build()
+                if not builder:
+                    builder = (new_builder(align), new_builder(align))
+                    builder[0].pushStyle(default_style)
+                    builder[1].pushStyle(default_style)
+                builder[0].addText("\n")
+                builder[1].addText("\n")
             elif token_type == 4:
                 text_align = align_stack[-1] if align_stack else align
                 text_color = color_stack[-1] if color_stack else fill
@@ -390,6 +397,8 @@ class Text2Image:
 
                 if not builder:
                     builder = (new_builder(text_align), new_builder(text_align))
+                    builder[0].pushStyle(default_style)
+                    builder[1].pushStyle(default_style)
                 style = new_style(
                     text_color,
                     text_font,
@@ -412,12 +421,12 @@ class Text2Image:
                     has_stroke = True
                     stroke_paint = new_stroke_paint(text_stroke, text_size)
                     stroke_style.setForegroundPaint(stroke_paint)
+                builder[0].pop()
                 builder[0].pushStyle(style)
                 builder[0].addText(token_text)
-                builder[0].pop()
+                builder[1].pop()
                 builder[1].pushStyle(stroke_style)
                 builder[1].addText(token_text)
-                builder[1].pop()
 
         build()
 
