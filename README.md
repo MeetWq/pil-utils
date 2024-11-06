@@ -24,6 +24,29 @@ yum install fontconfig mesa-libGL mesa-dri-drivers
 
 具体安装说明请参考 [skia-python 文档](https://kyamagu.github.io/skia-python/install.html)
 
+### 已知问题
+
+- Windows 上 `SkIcuLoader: datafile missing`
+
+由于 skia 在 Windows 上需要加载 `icudtl.dat` 文件，临时解决办法是手动将缺失的 `icudtl.dat` 文件放到 Python 环境里
+
+`icudtl.dat` 文件下载：https://github.com/MeetWq/pil-utils/releases/download/v0.2.0/icudtl.dat
+
+请放置到 Python 包目录下，即 `Lib\site-packages` 文件夹下
+
+相关 Issue：https://github.com/kyamagu/skia-python/issues/268
+
+- Linux 下字体异常
+
+可能是 skia 的 bug，在 Linux 上当 locate 设置为中文时，字体选择会出现异常
+
+临时解决办法是设置为英文 locate：
+```
+export LANG=en_US.UTF-8
+```
+
+相关 Issue：https://github.com/rust-skia/rust-skia/issues/963
+
 
 ### 使用示例
 
