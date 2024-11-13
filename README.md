@@ -38,7 +38,7 @@ yum install fontconfig mesa-libGL mesa-dri-drivers
 
 - Windows 上运行时程序直接退出
 
-skia 使用了 C++17 的特性，需要安装 [Visual Studio Build Tools](https://visualstudio.microsoft.com/zh-hans/downloads/?q=build+tools) 2017 以上版本
+skia 使用了 C++17 的特性，需要安装 [Visual C++ 运行时](https://visualstudio.microsoft.com/zh-hans/downloads/?q=redistributable) 2017 以上版本
 
 - Linux 下字体异常
 
