@@ -36,6 +36,10 @@ yum install fontconfig mesa-libGL mesa-dri-drivers
 
 相关 Issue：https://github.com/kyamagu/skia-python/issues/268
 
+- Windows 上运行时程序直接退出
+
+skia 使用了 C++17 的特性，需要安装 [Visual Studio Build Tools](https://visualstudio.microsoft.com/zh-hans/downloads/?q=build+tools) 2017 以上版本
+
 - Linux 下字体异常
 
 可能是 skia 的 bug，在 Linux 上当 locate 设置为中文时，字体选择会出现异常
