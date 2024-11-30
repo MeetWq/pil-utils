@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pil-utils"
-version = "0.2.1"
+version = "0.2.2"
 description = "A simple PIL wrapper and text-to-image tool"
 authors = ["meetwq <meetwq@gmail.com>"]
 license = "MIT"
