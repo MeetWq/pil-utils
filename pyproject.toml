@@ -14,7 +14,8 @@ Pillow = ">=10.0.0,<12.0.0"
 numpy = ">=1.21.0"
 opencv-python-headless = "^4.0.0"
 bbcode = "^1.1.0"
-skia-python = ">=130.0b10"
+skia-python = ">=132.0b11"
+msvc-runtime = {version = "*", platform = "win32"}
 
 [tool.poetry.group.dev.dependencies]
 

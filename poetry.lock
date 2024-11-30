@@ -12,6 +12,29 @@ files = [
 ]
 
 [[package]]
+name = "msvc-runtime"
+version = "14.42.34433"
+description = "Install the Microsoft™ Visual C++™ runtime DLLs to the sys.prefix and Scripts directories"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "msvc_runtime-14.42.34433-cp310-cp310-win32.whl", hash = "sha256:7211342b24025fd0294f7920814c5a5dc95a22fd03c8bc729ca980fb21df3f2b"},
+    {file = "msvc_runtime-14.42.34433-cp310-cp310-win_amd64.whl", hash = "sha256:89574bc376a48e349f97b6dde289367b0a32dedaf3774ef64ed4330e9823e09c"},
+    {file = "msvc_runtime-14.42.34433-cp311-cp311-win32.whl", hash = "sha256:a54c001e058ca22d88c30dc348d06fa704708ca9369464e52ed80b130bb47b4e"},
+    {file = "msvc_runtime-14.42.34433-cp311-cp311-win_amd64.whl", hash = "sha256:60ab9e5ca8ef3e230ead1a3db66340628aafc25f0c10d0195ced8f5a2e24883f"},
+    {file = "msvc_runtime-14.42.34433-cp311-cp311-win_arm64.whl", hash = "sha256:3a339f6dd8c8830743ef250a46683cb77b40633aaf1e5cf4032753f2c46f5afd"},
+    {file = "msvc_runtime-14.42.34433-cp312-cp312-win32.whl", hash = "sha256:791f60e9d8479065c6e9c6b1ae1d31555a6bb41a2e649f705bd96566a79bd1df"},
+    {file = "msvc_runtime-14.42.34433-cp312-cp312-win_amd64.whl", hash = "sha256:0f1c2733bf16fee37ab5f48a4c1cdf8f8bd26a945679a111e4219396e89a9049"},
+    {file = "msvc_runtime-14.42.34433-cp312-cp312-win_arm64.whl", hash = "sha256:f4ffbb6bdde4870f4995234423a46ac650cc2535c7812605bd457d064a77345e"},
+    {file = "msvc_runtime-14.42.34433-cp313-cp313-win32.whl", hash = "sha256:7d1fc5675c3d9769b3f05b9a57156211a053415f0dab938493c2d490c84187a4"},
+    {file = "msvc_runtime-14.42.34433-cp313-cp313-win_amd64.whl", hash = "sha256:087e2a7906b953970d93f37ea740605688eff616fa7ad42cc46e15137797e7e6"},
+    {file = "msvc_runtime-14.42.34433-cp313-cp313-win_arm64.whl", hash = "sha256:0d873db88d3027e3a9b2abf8b2104af96199a317f940802bce2d234dd4aa915c"},
+    {file = "msvc_runtime-14.42.34433-cp39-cp39-win32.whl", hash = "sha256:2adaf04bc5a7290b669fcc404a96750c1c6d8ffb8fe1037c264371bf67bca210"},
+    {file = "msvc_runtime-14.42.34433-cp39-cp39-win_amd64.whl", hash = "sha256:d4da7241349e9bf7d79346680f180b29bcc8aff242bd3de075529be71c097271"},
+    {file = "msvc_runtime-14.42.34433-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:e934840ebbef53f51febfacdb4f39965060a818cee3429da9fcfd396c61595cf"},
+]
+
+[[package]]
 name = "numpy"
 version = "2.0.2"
 description = "Fundamental package for array computing in Python"
@@ -199,36 +222,41 @@ global = ["pybind11-global (==2.13.6)"]
 
 [[package]]
 name = "skia-python"
-version = "130.0b10"
+version = "132.0b11"
 description = "Skia python binding"
 optional = false
 python-versions = "*"
 files = [
-    {file = "skia_python-130.0b10-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2fe1f83bce896fde4fa1e7d8fe3e338213d953c9a0cb1248b1b3828f39253060"},
-    {file = "skia_python-130.0b10-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:dd934b1e6fcd422c6f9859ce4f0b81631c59e6c5fe155ae6a7ec0b752b1fa1d5"},
-    {file = "skia_python-130.0b10-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b079278e29c40d2ccd9a509744207008e4b81ac17bf5712efb96c47c11c205be"},
-    {file = "skia_python-130.0b10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eec09bad3faea694bf09e149a5c82683333abcfa2b73381e348e2da00b5bb482"},
-    {file = "skia_python-130.0b10-cp310-cp310-win_amd64.whl", hash = "sha256:31dcc7d984f39d78e4d9f927fe523a3c4e15e57d93bd58ec0f0049ed6d05c9f5"},
-    {file = "skia_python-130.0b10-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:1aa2bc4aabc8722c5214911f92b69857c7bb55415b30996fbdcf2271e3dabe37"},
-    {file = "skia_python-130.0b10-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:64def66c6f942b818ffb5b08ad8214ab10afc5260442eb1b0411fdd00a5150d4"},
-    {file = "skia_python-130.0b10-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:561d82ccb6abe4341d8b59f0caa3ddeeb4fecb407c7dd80adda1c0ef11546485"},
-    {file = "skia_python-130.0b10-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:fc6b8f934e17549bbc56bdd75bb2c7e0ffff8b4cc1f853ef52d7ccfad45e9783"},
-    {file = "skia_python-130.0b10-cp311-cp311-win_amd64.whl", hash = "sha256:654a7ffd5e7afc7702c06f527f487d0b6c3e80f27535581a0d36ef1ef9cba15a"},
-    {file = "skia_python-130.0b10-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:fea237e9eb8b449c489704dcd18c5ba03ee687768a8e429caaab857055f4a88e"},
-    {file = "skia_python-130.0b10-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:ad303e812e561a71cb99d0f41bb35ef70b4675848f92941e99935866fbbefa31"},
-    {file = "skia_python-130.0b10-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c94536d3e8e696f70eeec5d8f642ec9d9044f0a7cdcf8ae5e5f3564a7094f6ec"},
-    {file = "skia_python-130.0b10-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5e87500b15ed5ecde2a974bf53ebe582772938aeb8c2b18a323f53a9b8019815"},
-    {file = "skia_python-130.0b10-cp312-cp312-win_amd64.whl", hash = "sha256:c3af6759476a4bc6c67af63364d6428d5f5be6736d45ac3389e893aa66cab6b3"},
-    {file = "skia_python-130.0b10-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:31a7ac283139be4101034d0d3dc8cd2fe4e4c2d59599ca62da1bd82f6af7007c"},
-    {file = "skia_python-130.0b10-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:23b18977eb18ccdd2f6c822738f21d8445b643d689ea8d74d5c1055277d133c5"},
-    {file = "skia_python-130.0b10-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b00002c68fdce2ff5973649985427e42b6f80b74bb06d1cc8fb5df92a40c8c97"},
-    {file = "skia_python-130.0b10-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:0855bf89cc48cb693e0d70c4aaa01fb009840d10ef9bce57c1d33c3e490854bd"},
-    {file = "skia_python-130.0b10-cp38-cp38-win_amd64.whl", hash = "sha256:2c99551fb9e54ad5f75c0a63f4f4d6e8c42ad79f614dadc7ee7b3a0a3261025f"},
-    {file = "skia_python-130.0b10-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:47636be6401cc33782750a6a5b09d7d18d3e39bf4ed70c1af4698f0adb822806"},
-    {file = "skia_python-130.0b10-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:ef29235e7bfe17aac7e220278d0ec075e3d331110c0fc6b889a98efe1045ec25"},
-    {file = "skia_python-130.0b10-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:23992d5446fb20ac9ee8cc866860a0eaafcda0d04265de0a3377f45d5b93d99d"},
-    {file = "skia_python-130.0b10-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3eddbfe464cb245c202bbc6e29484bb87439fdbd97233b2bb66e20c07c022478"},
-    {file = "skia_python-130.0b10-cp39-cp39-win_amd64.whl", hash = "sha256:5d9ed9cf487938f6c3f06520df9eec1f139c7b3046ffe3a58a5d428ef7f32356"},
+    {file = "skia_python-132.0b11-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:586891745253b39d7fbb9a665748f5560acc1ac979a7b8feec81cb8e78d4920e"},
+    {file = "skia_python-132.0b11-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:44d2d523cdf613070320251ecc0575eeaa54378407ac77150038987368365828"},
+    {file = "skia_python-132.0b11-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d1e7aebf65108d37c56025faef72dd2c9a7c77826f85e3a3fbe11262815c83d6"},
+    {file = "skia_python-132.0b11-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c5a44ec0cb731d2e9484c9bc2d4bb13581b1ae215880a2bbb13a4d38fcf88a00"},
+    {file = "skia_python-132.0b11-cp310-cp310-win_amd64.whl", hash = "sha256:5c81a8cac6b9c713ed299b71fe61d973414aba63bdf7a613b8962a2f1da31bd9"},
+    {file = "skia_python-132.0b11-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:95fc735b01609f1743e18449008f76fbdc33bf7dd7563aec7049b9f19e3a267c"},
+    {file = "skia_python-132.0b11-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:bd6d491e4baf7e157aeaf13f6963161a4a60c90835166c98a6bed667b0dbedfa"},
+    {file = "skia_python-132.0b11-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:6f058a6ef14a1ae07b912ca6d9538a8122951d8faf5d918540b39ea618e39bc5"},
+    {file = "skia_python-132.0b11-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1495d709570fb247f4ac7321697fb1d6293f42149eca61e461070d2056c85228"},
+    {file = "skia_python-132.0b11-cp311-cp311-win_amd64.whl", hash = "sha256:e12385570d8ca99d1a30e6d73125d8832ac11517551b7066adfb04b6a02ae8df"},
+    {file = "skia_python-132.0b11-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:e55f7ae17fa7082088cab26b09667496cedd0a882dbe87366d0192721edfd2eb"},
+    {file = "skia_python-132.0b11-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:3b6f54a0be6b8bb5520fa9de22fce035f8aff934ec4008ef5512a7cdc211f024"},
+    {file = "skia_python-132.0b11-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cc9800bc297baa3b877626f1effd4eefd3a3b4f67ac9c542d6370937533eb4a6"},
+    {file = "skia_python-132.0b11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:db1b9088739577d41e40375beac56b9db852b1ea55c4fabef3d34ad385138c15"},
+    {file = "skia_python-132.0b11-cp312-cp312-win_amd64.whl", hash = "sha256:fe8faf84a4f07a07ef3599339b8acdffb0aa3baed473828177ea668e765bf5e0"},
+    {file = "skia_python-132.0b11-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:0039b43be09f5c8811e762068e0799f437ce154510f0040a1d2428df2a6808c2"},
+    {file = "skia_python-132.0b11-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:5dc3a89c28eae94792608768afb866526273ac78bd34af5d9c5defe096b13210"},
+    {file = "skia_python-132.0b11-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:054acd950dd05878f2ffbce51db28befe083c2a1e04887dbd566d6580a81d01e"},
+    {file = "skia_python-132.0b11-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:96912300d26180af2573298acfca9e270278e162c0de8d0480c4b3b9a86d8f95"},
+    {file = "skia_python-132.0b11-cp313-cp313-win_amd64.whl", hash = "sha256:caaac5ba9f1c26f5dfbf50873c9191f75289dbcea45ba946a2f626de1cd3a14b"},
+    {file = "skia_python-132.0b11-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:84a754c52d05c230c7dfb13a0bef89a0a609403285001379b245cd13919913b6"},
+    {file = "skia_python-132.0b11-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:b818227fed51e859e5c736c81a4b70653a017cc65d75da1f80b547a897b1913f"},
+    {file = "skia_python-132.0b11-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e01f8582c2acc03056a750ad9aa26078013e1c9c221aad8eca2908410c5ed09d"},
+    {file = "skia_python-132.0b11-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:58ffa1c859cb2e444a8899b4caf98c41d0b7ee20737435fee2411fb321bcc9a7"},
+    {file = "skia_python-132.0b11-cp38-cp38-win_amd64.whl", hash = "sha256:f26397d9329c55eeff22527a2740a6b5bf17eee61ec0f7a56755059643b817b5"},
+    {file = "skia_python-132.0b11-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:b2f373f6c1baba9465e0a270d2f84646d31b040f03c987895b791756a7cae87a"},
+    {file = "skia_python-132.0b11-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:40d65b329369a7afdbc64eccf857a3ec9cb0b5e0dc1ff484c06b757522535ea6"},
+    {file = "skia_python-132.0b11-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d1177d68e05a713ae44257c054c1a72d04f53b1833e264de7f053fe228914732"},
+    {file = "skia_python-132.0b11-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ffd829cf2b7b85772e8d0a3c65d52abcd31b20b163f02c7701a908a1ee7a4304"},
+    {file = "skia_python-132.0b11-cp39-cp39-win_amd64.whl", hash = "sha256:cc922461845e4dfb31304e8c19e8cdc6b7ba735be7c63c94310be77d23396ddd"},
 ]
 
 [package.dependencies]
@@ -238,4 +266,4 @@ pybind11 = ">=2.6"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "dc3fb9bccbf116c56ac213205965aa4d3e08146df8f27f604feaaa4fcc078874"
+content-hash = "ed3731229f96edb512b0cd668ef4f213829f2b505d5caf298d30c71309cdf5b7"
